@@ -62,4 +62,4 @@ coverage/
 # Package manager lock files (optional - you may want to commit these)
 # package-lock.json
 # yarn.lock
-# pnpm-lock.yaml
+# pnpm-lock.yamlfrontend/.vite/
