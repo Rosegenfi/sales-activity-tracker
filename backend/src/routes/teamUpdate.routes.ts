@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Response } from 'express';
 import { body, validationResult } from 'express-validator';
 import pool from '../config/database';
 import { authenticate, authorize, AuthRequest } from '../middleware/auth.middleware';
@@ -77,7 +77,7 @@ router.post('/', [
   authorize('admin'),
   body('title').notEmpty().trim(),
   body('category').isIn(['presentations', 'tickets', 'events', 'qc_updates'])
-], async (req: AuthRequest, res) => {
+], async (req: AuthRequest, res: Response) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -120,7 +120,7 @@ router.put('/:id', [
   authorize('admin'),
   body('title').optional().notEmpty().trim(),
   body('category').optional().isIn(['presentations', 'tickets', 'events', 'qc_updates'])
-], async (req: AuthRequest, res) => {
+], async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const { title, content, category, fileUrl, externalLink } = req.body;

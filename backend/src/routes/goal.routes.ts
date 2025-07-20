@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Response } from 'express';
 import { body, validationResult } from 'express-validator';
 import pool from '../config/database';
 import { authenticate, AuthRequest } from '../middleware/auth.middleware';
@@ -44,7 +44,7 @@ router.post('/', [
   body('callsGoal').isInt({ min: 0 }),
   body('emailsGoal').isInt({ min: 0 }),
   body('meetingsGoal').isInt({ min: 0 })
-], async (req: AuthRequest, res) => {
+], async (req: AuthRequest, res: Response) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -91,7 +91,7 @@ router.patch('/achievement', [
   body('callsAchieved').optional().isBoolean(),
   body('emailsAchieved').optional().isBoolean(),
   body('meetingsAchieved').optional().isBoolean()
-], async (req: AuthRequest, res) => {
+], async (req: AuthRequest, res: Response) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
