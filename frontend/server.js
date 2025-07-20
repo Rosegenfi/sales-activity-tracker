@@ -1,21 +1,50 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const HOST = '0.0.0.0'; // Important for Railway
+
+// Check if dist directory exists
+const distPath = path.join(__dirname, 'dist');
+if (!fs.existsSync(distPath)) {
+  console.error('Error: dist directory not found. Make sure to run npm run build first.');
+  process.exit(1);
+}
 
 // Serve static files from the dist directory
-app.use(express.static(path.join(__dirname, 'dist')));
+app.use(express.static(distPath));
 
-// Handle all routes by serving the index.html
-app.use((req, res) => {
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-app.listen(PORT, () => {
-  console.log(`Frontend server is running on port ${PORT}`);
+// Handle client-side routing - serve index.html for all other routes
+app.get('*', (req, res) => {
+  const indexPath = path.join(distPath, 'index.html');
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.status(404).send('index.html not found');
+  }
+});
+
+// Start server with explicit host binding
+const server = app.listen(PORT, HOST, () => {
+  console.log(`Frontend server is running on http://${HOST}:${PORT}`);
+  console.log(`Serving files from: ${distPath}`);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM signal received: closing HTTP server');
+  server.close(() => {
+    console.log('HTTP server closed');
+  });
 });
