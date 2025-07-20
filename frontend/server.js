@@ -25,8 +25,15 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Handle client-side routing - serve index.html for all other routes
-app.get('*', (req, res) => {
+// Handle client-side routing - serve index.html for any non-static routes
+// Using a middleware function instead of wildcard route to avoid path-to-regexp issues
+app.use((req, res, next) => {
+  // If it's a file request (has extension), let it 404
+  if (path.extname(req.path)) {
+    return res.status(404).send('File not found');
+  }
+  
+  // Otherwise, serve the index.html for client-side routing
   const indexPath = path.join(distPath, 'index.html');
   if (fs.existsSync(indexPath)) {
     res.sendFile(indexPath);
