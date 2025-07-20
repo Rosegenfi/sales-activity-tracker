@@ -1,4 +1,5 @@
 import axios from 'axios';
+import API_CONFIG from '@/config/api';
 import type { 
   AuthResponse, 
   User, 
@@ -9,12 +10,7 @@ import type {
   LeaderboardData 
 } from '@/types';
 
-const api = axios.create({
-  baseURL: '/api',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+const api = axios.create(API_CONFIG);
 
 // Add auth token to requests
 api.interceptors.request.use(
