@@ -50,7 +50,7 @@ const TeamUpdates = () => {
     const updateData = {
       title: formData.get('title') as string,
       content: formData.get('content') as string,
-      category: formData.get('category') as string,
+      category: formData.get('category') as 'presentations' | 'tickets' | 'events' | 'qc_updates',
       externalLink: formData.get('externalLink') as string,
     };
 

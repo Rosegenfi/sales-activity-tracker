@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { userApi, commitmentApi, resultApi, goalApi } from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
-import { User as UserIcon, Phone, Mail, Users, Calendar, Target, TrendingUp, Award } from 'lucide-react';
+import { User as UserIcon, Phone, Mail, Users, Target } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { format, startOfWeek, addDays } from 'date-fns';
 import type { User, WeeklyCommitment, WeeklyResult, DailyGoal } from '@/types';

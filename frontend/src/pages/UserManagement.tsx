@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { userApi, authApi } from '@/services/api';
-import { Users, UserPlus, Mail, Shield, Check, X, Edit2 } from 'lucide-react';
+import { Users, UserPlus, Mail, Shield, Check } from 'lucide-react';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import type { User } from '@/types';

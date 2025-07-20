@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { goalApi, commitmentApi } from '@/services/api';
 import { Target, Phone, Mail, Users, Calendar, CheckCircle, Circle, ChevronLeft, ChevronRight } from 'lucide-react';
-import { format, addDays, startOfWeek, endOfWeek, isToday, isBefore, isAfter } from 'date-fns';
+import { format, addDays, startOfWeek, isToday, isBefore, isAfter } from 'date-fns';
 import toast from 'react-hot-toast';
 import type { DailyGoal, WeeklyCommitment } from '@/types';
 
@@ -14,7 +14,6 @@ const DailyGoals = () => {
   const [showForm, setShowForm] = useState(false);
 
   const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 });
-  const weekEnd = endOfWeek(selectedDate, { weekStartsOn: 1 });
 
   useEffect(() => {
     fetchData();

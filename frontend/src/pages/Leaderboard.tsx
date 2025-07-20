@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { leaderboardApi } from '@/services/api';
-import { Trophy, Phone, Users as UsersIcon, TrendingUp, Award, Star } from 'lucide-react';
+import { Trophy, Phone, Users as UsersIcon, Star } from 'lucide-react';
 import { format } from 'date-fns';
 import type { LeaderboardData } from '@/types';
 
