@@ -19,6 +19,12 @@ async function runMigrations() {
     await pool.query(migrationSQL);
     
     console.log('Migrations completed successfully!');
+    
+    // Log the admin user creation for verification
+    const result = await pool.query('SELECT email FROM users WHERE email = $1', ['admin@salestracker.com']);
+    if (result.rows.length > 0) {
+      console.log('Admin user created successfully:', result.rows[0].email);
+    }
     process.exit(0);
   } catch (error) {
     console.error('Migration failed:', error);

@@ -63,3 +63,4 @@ coverage/
 # package-lock.json
 # yarn.lock
 # pnpm-lock.yamlfrontend/.vite/
+core.*

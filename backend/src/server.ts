@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
 import pool from './config/database';
+import { checkDatabaseStatus } from './utils/checkDatabase';
 
 // Import routes
 import authRoutes from './routes/auth.routes';
@@ -58,6 +59,9 @@ const startServer = async () => {
     // Test database connection
     await pool.query('SELECT NOW()');
     console.log('Database connected successfully');
+    
+    // Check database status
+    await checkDatabaseStatus();
     
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);

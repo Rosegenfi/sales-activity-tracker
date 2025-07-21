@@ -19,6 +19,7 @@ router.post('/login', [
     }
 
     const { email, password } = req.body;
+    console.log('Login attempt for email:', email);
 
     // Find user
     const result = await pool.query(
