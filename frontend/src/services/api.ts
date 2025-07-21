@@ -49,7 +49,7 @@ export const authApi = {
     firstName: string;
     lastName: string;
     role: string;
-  }) => api.post<{ user: User }>('/auth/register', data),
+  }) => api.post<{ user: User; temporaryPassword?: string }>('/auth/register', data),
   
   getCurrentUser: () => api.get<User>('/auth/me'),
 };

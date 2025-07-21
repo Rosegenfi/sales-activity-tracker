@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import api from '@/lib/api';
+import api from '@/services/api';
 
 export default function ChangePassword() {
   const navigate = useNavigate();
