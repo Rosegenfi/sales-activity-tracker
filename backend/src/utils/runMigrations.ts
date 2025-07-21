@@ -3,7 +3,7 @@ import path from 'path';
 import bcrypt from 'bcryptjs';
 import pool from '../config/database';
 
-async function runMigrations() {
+export async function runMigrations() {
   try {
     console.log('Running database migrations...');
     
@@ -25,11 +25,15 @@ async function runMigrations() {
     if (result.rows.length > 0) {
       console.log('Admin user created successfully:', result.rows[0].email);
     }
-    process.exit(0);
   } catch (error) {
     console.error('Migration failed:', error);
-    process.exit(1);
+    throw error;
   }
 }
 
-runMigrations();
+// Run migrations if called directly
+if (require.main === module) {
+  runMigrations()
+    .then(() => process.exit(0))
+    .catch(() => process.exit(1));
+}

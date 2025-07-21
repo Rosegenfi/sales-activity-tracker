@@ -5,10 +5,10 @@
   "main": "dist/server.js",
   "scripts": {
     "dev": "nodemon",
-    "build": "tsc",
+    "build": "tsc && cp -r src/migrations dist/",
     "start": "node dist/server.js",
-    "start:prod": "npm run migrate && npm start",
-    "migrate": "ts-node src/utils/runMigrations.ts"
+    "migrate": "node dist/utils/runMigrations.js",
+    "start:with-migrate": "npm run migrate && npm start"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

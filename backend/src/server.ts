@@ -53,12 +53,41 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   });
 });
 
+// Function to run migrations
+async function runMigrationsIfNeeded() {
+  try {
+    // Check if users table exists
+    const tableCheck = await pool.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_schema = 'public' 
+        AND table_name = 'users'
+      );
+    `);
+    
+    if (!tableCheck.rows[0].exists) {
+      console.log('Database tables not found. Running migrations...');
+      const { runMigrations } = await import('./utils/runMigrations');
+      await runMigrations();
+      console.log('Migrations completed!');
+    } else {
+      console.log('Database tables already exist');
+    }
+  } catch (error) {
+    console.error('Migration check failed:', error);
+    throw error;
+  }
+}
+
 // Start server
 const startServer = async () => {
   try {
     // Test database connection
     await pool.query('SELECT NOW()');
     console.log('Database connected successfully');
+    
+    // Run migrations if needed
+    await runMigrationsIfNeeded();
     
     // Check database status
     await checkDatabaseStatus();
