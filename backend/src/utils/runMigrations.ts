@@ -1,15 +1,13 @@
-import fs from 'fs';
-import path from 'path';
 import bcrypt from 'bcryptjs';
 import pool from '../config/database';
+import { initialSchemaSql } from './migrationSQL';
 
 export async function runMigrations() {
   try {
     console.log('Running database migrations...');
     
-    // Read migration file
-    const migrationPath = path.join(__dirname, '../migrations/001_initial_schema.sql');
-    let migrationSQL = fs.readFileSync(migrationPath, 'utf8');
+    // Get migration SQL from embedded string
+    let migrationSQL = initialSchemaSql;
     
     // Hash the default admin password
     const hashedPassword = await bcrypt.hash('admin123', 10);
