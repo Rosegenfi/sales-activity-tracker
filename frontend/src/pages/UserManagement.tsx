@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { userApi, authApi } from '@/services/api';
 import { Users, UserPlus, Mail, Shield, Check } from 'lucide-react';
 import { format } from 'date-fns';
@@ -256,7 +257,12 @@ const UserManagement = () => {
               {users.map((user) => (
                 <tr key={user.id} className="border-b border-gray-100 hover:bg-gray-50">
                   <td className="py-3 px-4">
-                    <div className="font-medium">{user.firstName} {user.lastName}</div>
+                    <Link 
+                      to={`/profile/${user.id}`}
+                      className="font-medium hover:text-primary-600 transition-colors"
+                    >
+                      {user.firstName} {user.lastName}
+                    </Link>
                   </td>
                   <td className="py-3 px-4">
                     <div className="flex items-center">
@@ -319,7 +325,12 @@ const UserManagement = () => {
             {inactiveUsers.map(user => (
               <div key={user.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div>
-                  <p className="font-medium">{user.firstName} {user.lastName}</p>
+                  <Link 
+                    to={`/profile/${user.id}`}
+                    className="font-medium hover:text-primary-600 transition-colors"
+                  >
+                    {user.firstName} {user.lastName}
+                  </Link>
                   <p className="text-sm text-gray-500">{user.email}</p>
                 </div>
                 <button

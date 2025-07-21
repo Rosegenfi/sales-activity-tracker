@@ -169,4 +169,93 @@ router.get('/history', authenticate, async (req: AuthRequest, res) => {
   }
 });
 
+// Get results for specific user and week (Admin or self)
+router.get('/user/:userId/week/:weekStart', authenticate, async (req: AuthRequest, res) => {
+  try {
+    const { userId, weekStart } = req.params;
+
+    // Check permissions
+    if (req.user!.id !== parseInt(userId) && req.user!.role !== 'admin') {
+      return res.status(403).json({ message: 'Insufficient permissions' });
+    }
+
+    const result = await pool.query(
+      `SELECT r.*, c.calls_target, c.emails_target, c.meetings_target
+       FROM weekly_results r
+       LEFT JOIN weekly_commitments c ON c.user_id = r.user_id AND c.week_start_date = r.week_start_date
+       WHERE r.user_id = $1 AND r.week_start_date = $2`,
+      [userId, weekStart]
+    );
+
+    if (result.rows.length === 0) {
+      return res.json(null);
+    }
+
+    const data = result.rows[0];
+
+    res.json({
+      id: data.id,
+      weekStartDate: data.week_start_date,
+      callsActual: data.calls_actual,
+      emailsActual: data.emails_actual,
+      meetingsActual: data.meetings_actual,
+      callsTarget: data.calls_target || 0,
+      emailsTarget: data.emails_target || 0,
+      meetingsTarget: data.meetings_target || 0,
+      percentages: {
+        calls: data.calls_target ? Math.round((data.calls_actual / data.calls_target) * 100) : 0,
+        emails: data.emails_target ? Math.round((data.emails_actual / data.emails_target) * 100) : 0,
+        meetings: data.meetings_target ? Math.round((data.meetings_actual / data.meetings_target) * 100) : 0
+      }
+    });
+  } catch (error) {
+    console.error('Get user week results error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get result history for specific user (Admin or self)
+router.get('/user/:userId/history', authenticate, async (req: AuthRequest, res) => {
+  try {
+    const { userId } = req.params;
+    const { limit = 12 } = req.query;
+
+    // Check permissions
+    if (req.user!.id !== parseInt(userId) && req.user!.role !== 'admin') {
+      return res.status(403).json({ message: 'Insufficient permissions' });
+    }
+
+    const result = await pool.query(
+      `SELECT r.*, c.calls_target, c.emails_target, c.meetings_target
+       FROM weekly_results r
+       LEFT JOIN weekly_commitments c ON c.user_id = r.user_id AND c.week_start_date = r.week_start_date
+       WHERE r.user_id = $1 
+       ORDER BY r.week_start_date DESC 
+       LIMIT $2`,
+      [userId, limit]
+    );
+
+    const results = result.rows.map(row => ({
+      id: row.id,
+      weekStartDate: row.week_start_date,
+      callsActual: row.calls_actual,
+      emailsActual: row.emails_actual,
+      meetingsActual: row.meetings_actual,
+      callsTarget: row.calls_target || 0,
+      emailsTarget: row.emails_target || 0,
+      meetingsTarget: row.meetings_target || 0,
+      percentages: {
+        calls: row.calls_target ? Math.round((row.calls_actual / row.calls_target) * 100) : 0,
+        emails: row.emails_target ? Math.round((row.emails_actual / row.emails_target) * 100) : 0,
+        meetings: row.meetings_target ? Math.round((row.meetings_actual / row.meetings_target) * 100) : 0
+      }
+    }));
+
+    res.json(results);
+  } catch (error) {
+    console.error('Get user result history error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 export default router;

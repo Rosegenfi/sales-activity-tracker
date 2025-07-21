@@ -230,4 +230,43 @@ router.get('/user/:userId/date/:date', authenticate, async (req: AuthRequest, re
   }
 });
 
+// Get goals for specific user and week (Admin or self)
+router.get('/user/:userId/week/:weekStart', authenticate, async (req: AuthRequest, res) => {
+  try {
+    const { userId, weekStart } = req.params;
+
+    // Check permissions
+    if (req.user!.id !== parseInt(userId) && req.user!.role !== 'admin') {
+      return res.status(403).json({ message: 'Insufficient permissions' });
+    }
+
+    // Get all goals for the week
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekEnd.getDate() + 6);
+
+    const result = await pool.query(
+      `SELECT * FROM daily_goals 
+       WHERE user_id = $1 AND date >= $2 AND date <= $3
+       ORDER BY date`,
+      [userId, weekStart, weekEnd.toISOString().split('T')[0]]
+    );
+
+    const goals = result.rows.map(goal => ({
+      id: goal.id,
+      date: goal.date,
+      callsTarget: goal.calls_target,
+      emailsTarget: goal.emails_target,
+      meetingsTarget: goal.meetings_target,
+      callsActual: goal.calls_actual,
+      emailsActual: goal.emails_actual,
+      meetingsActual: goal.meetings_actual
+    }));
+
+    res.json(goals);
+  } catch (error) {
+    console.error('Get user week goals error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 export default router;

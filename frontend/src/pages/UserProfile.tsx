@@ -38,36 +38,75 @@ const UserProfile = () => {
     }
 
     try {
-      const [userRes, commitmentsRes, resultsRes] = await Promise.all([
-        userApi.getUserById(parseInt(userId!)),
-        commitmentApi.getCommitmentHistory(8),
-        resultApi.getResultHistory(8)
-      ]);
-
+      const userRes = await userApi.getUserById(parseInt(userId!));
       setUser(userRes.data);
 
       // Only fetch detailed data if viewing own profile or admin
       if (canViewDetails) {
-        // Combine commitments and results
-        const combinedData: WeekData[] = [];
-        const allWeeks = new Set([
-          ...commitmentsRes.data.map(c => c.weekStartDate),
-          ...resultsRes.data.map(r => r.weekStartDate)
+        const targetUserId = parseInt(userId!);
+        
+        // Fetch the user's commitments and results
+        const [commitmentsRes, resultsRes] = await Promise.all([
+          isOwnProfile 
+            ? commitmentApi.getCommitmentHistory(8)
+            : resultApi.getUserResultHistory(targetUserId, 8),
+          isOwnProfile
+            ? resultApi.getResultHistory(8)
+            : resultApi.getUserResultHistory(targetUserId, 8)
         ]);
 
-        Array.from(allWeeks).sort().reverse().forEach(weekStart => {
-          combinedData.push({
-            weekStart,
-            commitments: commitmentsRes.data.find(c => c.weekStartDate === weekStart) || null,
-            results: resultsRes.data.find(r => r.weekStartDate === weekStart) || null
+        // For admin viewing other user, fetch their history
+        if (!isOwnProfile && currentUser?.role === 'admin') {
+          // Get last 8 weeks of data
+          const weeks: string[] = [];
+          const today = new Date();
+          for (let i = 0; i < 8; i++) {
+            const weekStart = startOfWeek(new Date(today.getTime() - i * 7 * 24 * 60 * 60 * 1000), { weekStartsOn: 1 });
+            weeks.push(format(weekStart, 'yyyy-MM-dd'));
+          }
+
+          // Fetch commitments and results for each week
+          const weekDataPromises = weeks.map(async (weekStart) => {
+            const [commitment, result] = await Promise.all([
+              commitmentApi.getUserWeekCommitment(targetUserId, weekStart),
+              resultApi.getUserWeekResult(targetUserId, weekStart)
+            ]);
+            return {
+              weekStart,
+              commitments: commitment.data,
+              results: result.data
+            };
           });
-        });
 
-        setWeekData(combinedData);
+          const fetchedWeekData = await Promise.all(weekDataPromises);
+          setWeekData(fetchedWeekData.filter(w => w.commitments || w.results));
 
-        // Fetch current week goals
-        const goalsRes = await goalApi.getCurrentWeekGoals();
-        setCurrentWeekGoals(goalsRes.data);
+          // Fetch current week goals for the user
+          const currentWeekStart = format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd');
+          const goalsRes = await goalApi.getUserWeekGoals(targetUserId, currentWeekStart);
+          setCurrentWeekGoals(goalsRes.data);
+        } else {
+          // Own profile - use existing data
+          const combinedData: WeekData[] = [];
+          const allWeeks = new Set([
+            ...commitmentsRes.data.map(c => c.weekStartDate),
+            ...resultsRes.data.map(r => r.weekStartDate)
+          ]);
+
+          Array.from(allWeeks).sort().reverse().forEach(weekStart => {
+            combinedData.push({
+              weekStart,
+              commitments: commitmentsRes.data.find(c => c.weekStartDate === weekStart) || null,
+              results: resultsRes.data.find(r => r.weekStartDate === weekStart) || null
+            });
+          });
+
+          setWeekData(combinedData);
+
+          // Fetch current week goals
+          const goalsRes = await goalApi.getCurrentWeekGoals();
+          setCurrentWeekGoals(goalsRes.data);
+        }
       }
     } catch (error) {
       console.error('Error fetching user data:', error);

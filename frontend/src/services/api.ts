@@ -87,6 +87,10 @@ export const resultApi = {
   }) => api.post<WeeklyResult>('/results', data),
   getResultHistory: (limit?: number) =>
     api.get<WeeklyResult[]>('/results/history', { params: { limit } }),
+  getUserWeekResult: (userId: number, weekStart: string) =>
+    api.get<WeeklyResult | null>(`/results/user/${userId}/week/${weekStart}`),
+  getUserResultHistory: (userId: number, limit?: number) =>
+    api.get<WeeklyResult[]>(`/results/user/${userId}/history`, { params: { limit } }),
 };
 
 // Goal endpoints
@@ -107,6 +111,8 @@ export const goalApi = {
   getCurrentWeekGoals: () => api.get<DailyGoal[]>('/goals/week/current'),
   getUserGoalByDate: (userId: number, date: string) =>
     api.get<DailyGoal | null>(`/goals/user/${userId}/date/${date}`),
+  getUserWeekGoals: (userId: number, weekStart: string) =>
+    api.get<DailyGoal[]>(`/goals/user/${userId}/week/${weekStart}`),
 };
 
 // Team update endpoints
