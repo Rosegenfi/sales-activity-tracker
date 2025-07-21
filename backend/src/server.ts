@@ -72,6 +72,15 @@ async function runMigrationsIfNeeded() {
       console.log('Migrations completed!');
     } else {
       console.log('Database tables already exist');
+      
+      // Fix column names if needed for existing databases
+      try {
+        const { fixColumnNamesSql } = await import('./utils/fixColumnNamesSql');
+        await pool.query(fixColumnNamesSql);
+        console.log('Column names checked/fixed');
+      } catch (error) {
+        console.error('Failed to fix column names:', error);
+      }
     }
   } catch (error) {
     console.error('Migration check failed:', error);

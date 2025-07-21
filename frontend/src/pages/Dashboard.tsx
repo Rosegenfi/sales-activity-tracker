@@ -71,8 +71,9 @@ const Dashboard = () => {
       setCurrentCommitment(response.data);
       setShowCommitmentForm(false);
       toast.success('Weekly commitments saved!');
-    } catch (error) {
-      toast.error('Failed to save commitments');
+    } catch (error: any) {
+      console.error('Failed to save commitments:', error);
+      toast.error(error.response?.data?.message || 'Failed to save commitments');
     }
   };
 
