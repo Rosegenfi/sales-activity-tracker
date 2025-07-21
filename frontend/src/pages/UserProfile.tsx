@@ -45,15 +45,24 @@ const UserProfile = () => {
       if (canViewDetails) {
         const targetUserId = parseInt(userId!);
         
-        // Fetch the user's commitments and results
-        const [commitmentsRes, resultsRes] = await Promise.all([
-          isOwnProfile 
-            ? commitmentApi.getCommitmentHistory(8)
-            : resultApi.getUserResultHistory(targetUserId, 8),
-          isOwnProfile
-            ? resultApi.getResultHistory(8)
-            : resultApi.getUserResultHistory(targetUserId, 8)
-        ]);
+        // Fetch the user's commitments and results based on who's viewing
+        let commitmentsData: WeeklyCommitment[] = [];
+        let resultsData: WeeklyResult[] = [];
+        
+        if (isOwnProfile) {
+          // Own profile - use regular endpoints
+          const [commitmentsRes, resultsRes] = await Promise.all([
+            commitmentApi.getCommitmentHistory(8),
+            resultApi.getResultHistory(8)
+          ]);
+          commitmentsData = commitmentsRes.data;
+          resultsData = resultsRes.data;
+        } else if (currentUser?.role === 'admin') {
+          // Admin viewing other user - fetch their specific data
+          const resultsRes = await resultApi.getUserResultHistory(targetUserId, 8);
+          resultsData = resultsRes.data;
+          // Note: commitments will be fetched per week below
+        }
 
         // For admin viewing other user, fetch their history
         if (!isOwnProfile && currentUser?.role === 'admin') {
@@ -89,15 +98,15 @@ const UserProfile = () => {
           // Own profile - use existing data
           const combinedData: WeekData[] = [];
           const allWeeks = new Set([
-            ...commitmentsRes.data.map(c => c.weekStartDate),
-            ...resultsRes.data.map(r => r.weekStartDate)
+            ...commitmentsData.map(c => c.weekStartDate),
+            ...resultsData.map(r => r.weekStartDate)
           ]);
 
           Array.from(allWeeks).sort().reverse().forEach(weekStart => {
             combinedData.push({
               weekStart,
-              commitments: commitmentsRes.data.find(c => c.weekStartDate === weekStart) || null,
-              results: resultsRes.data.find(r => r.weekStartDate === weekStart) || null
+              commitments: commitmentsData.find(c => c.weekStartDate === weekStart) || null,
+              results: resultsData.find(r => r.weekStartDate === weekStart) || null
             });
           });
 

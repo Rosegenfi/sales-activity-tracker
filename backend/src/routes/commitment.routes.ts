@@ -187,4 +187,38 @@ router.get('/user/:userId/week/:weekStart', authenticate, async (req: AuthReques
   }
 });
 
+// Get commitment history for specific user (Admin or self)
+router.get('/user/:userId/history', authenticate, async (req: AuthRequest, res) => {
+  try {
+    const { userId } = req.params;
+    const { limit = 12 } = req.query;
+
+    // Check permissions
+    if (req.user!.id !== parseInt(userId) && req.user!.role !== 'admin') {
+      return res.status(403).json({ message: 'Insufficient permissions' });
+    }
+
+    const result = await pool.query(
+      `SELECT * FROM weekly_commitments 
+       WHERE user_id = $1 
+       ORDER BY week_start_date DESC 
+       LIMIT $2`,
+      [userId, limit]
+    );
+
+    const commitments = result.rows.map(commitment => ({
+      id: commitment.id,
+      weekStartDate: commitment.week_start_date,
+      callsTarget: commitment.calls_target,
+      emailsTarget: commitment.emails_target,
+      meetingsTarget: commitment.meetings_target
+    }));
+
+    res.json(commitments);
+  } catch (error) {
+    console.error('Get user commitment history error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 export default router;

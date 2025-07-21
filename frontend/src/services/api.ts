@@ -75,6 +75,8 @@ export const commitmentApi = {
     api.get<WeeklyCommitment[]>('/commitments/history', { params: { limit } }),
   getUserWeekCommitment: (userId: number, weekStart: string) =>
     api.get<WeeklyCommitment | null>(`/commitments/user/${userId}/week/${weekStart}`),
+  getUserCommitmentHistory: (userId: number, limit?: number) =>
+    api.get<WeeklyCommitment[]>(`/commitments/user/${userId}/history`, { params: { limit } }),
 };
 
 // Result endpoints
