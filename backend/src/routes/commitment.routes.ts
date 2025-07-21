@@ -35,8 +35,22 @@ router.get('/current', authenticate, async (req: AuthRequest, res) => {
         meetings: Math.ceil(commitment.meetings_target / 5)
       }
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Get current commitments error:', error);
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      detail: error.detail,
+      column: error.column
+    });
+    
+    if (error.code === '42703') {
+      return res.status(500).json({ 
+        message: 'Database column error. The database schema may need updating.',
+        detail: error.detail 
+      });
+    }
+    
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -84,9 +98,29 @@ router.post('/', [
         meetings: Math.ceil(commitment.meetings_target / 5)
       }
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Create/update commitments error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      detail: error.detail,
+      table: error.table,
+      constraint: error.constraint,
+      column: error.column
+    });
+    
+    // Check for specific database errors
+    if (error.code === '42703') {
+      return res.status(500).json({ 
+        message: 'Database column error. The database schema may need updating.',
+        detail: error.detail 
+      });
+    }
+    
+    res.status(500).json({ 
+      message: 'Failed to save commitments. Please try again.',
+      error: error.message 
+    });
   }
 });
 

@@ -5,6 +5,7 @@ import morgan from 'morgan';
 import dotenv from 'dotenv';
 import pool from './config/database';
 import { checkDatabaseStatus } from './utils/checkDatabase';
+import { ensureCorrectSchema } from './utils/ensureCorrectSchema';
 
 // Import routes
 import authRoutes from './routes/auth.routes';
@@ -97,6 +98,9 @@ const startServer = async () => {
     
     // Run migrations if needed
     await runMigrationsIfNeeded();
+    
+    // Ensure schema is correct (fix column names)
+    await ensureCorrectSchema();
     
     // Check database status
     await checkDatabaseStatus();
