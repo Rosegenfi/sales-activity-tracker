@@ -33,7 +33,7 @@ const UserManagement = () => {
     const formData = new FormData(e.currentTarget);
 
     try {
-      await authApi.register({
+      const response = await authApi.register({
         email: formData.get('email') as string,
         password: formData.get('password') as string,
         firstName: formData.get('firstName') as string,
@@ -41,7 +41,19 @@ const UserManagement = () => {
         role: formData.get('role') as string,
       });
 
-      toast.success('User created successfully');
+      if (response.data.temporaryPassword) {
+        toast.success(
+          <div>
+            <p className="font-semibold">User created successfully!</p>
+            <p className="text-sm mt-1">Temporary password: <code className="bg-gray-100 px-1 rounded">{response.data.temporaryPassword}</code></p>
+            <p className="text-xs mt-1 text-gray-600">Please share this password with the user</p>
+          </div>,
+          { duration: 10000 }
+        );
+      } else {
+        toast.success('User created successfully');
+      }
+      
       setShowCreateForm(false);
       fetchUsers();
       (e.target as HTMLFormElement).reset();
@@ -176,14 +188,20 @@ const UserManagement = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Password</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Password 
+                  <span className="text-sm text-gray-500 ml-1">(optional)</span>
+                </label>
                 <input
                   type="password"
                   name="password"
-                  required
                   minLength={6}
                   className="input-field mt-1"
+                  placeholder="Leave blank for auto-generated"
                 />
+                <p className="mt-1 text-xs text-gray-500">
+                  If left blank, a temporary password will be generated
+                </p>
               </div>
             </div>
 

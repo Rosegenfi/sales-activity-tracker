@@ -43,8 +43,19 @@ const Layout = () => {
       {/* Desktop Sidebar */}
       <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
         <div className="flex flex-col flex-1 bg-primary-900">
-          <div className="flex items-center justify-center h-16 bg-primary-950">
-            <h1 className="text-white text-xl font-bold">Sales Tracker</h1>
+          <div className="flex items-center justify-center h-16 bg-primary-950 px-4">
+            {/* Logo - Replace /images/logo.png with your actual logo path */}
+            <img 
+              src="/images/logo.png" 
+              alt="Sales Tracker Logo" 
+              className="h-10 w-auto"
+              onError={(e) => {
+                // Fallback to text if logo doesn't load
+                e.currentTarget.style.display = 'none';
+                e.currentTarget.nextElementSibling?.classList.remove('hidden');
+              }}
+            />
+            <h1 className="hidden text-white text-xl font-bold">Sales Tracker</h1>
           </div>
           <nav className="flex-1 px-2 py-4 space-y-1">
             {navigation.map((item) => {
@@ -81,7 +92,18 @@ const Layout = () => {
       {/* Mobile Header */}
       <div className="lg:hidden">
         <div className="bg-primary-900 px-4 py-3 flex items-center justify-between">
-          <h1 className="text-white text-lg font-bold">Sales Tracker</h1>
+          <div className="flex items-center">
+            <img 
+              src="/images/logo.png" 
+              alt="Sales Tracker Logo" 
+              className="h-8 w-auto"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+                e.currentTarget.nextElementSibling?.classList.remove('hidden');
+              }}
+            />
+            <h1 className="hidden text-white text-lg font-bold">Sales Tracker</h1>
+          </div>
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="text-white"
@@ -160,6 +182,15 @@ const Layout = () => {
                           className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         >
                           My Profile
+                        </button>
+                        <button
+                          onClick={() => {
+                            navigate('/change-password');
+                            setIsProfileDropdownOpen(false);
+                          }}
+                          className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          Change Password
                         </button>
                         {user?.role === 'admin' && (
                           <>

@@ -13,6 +13,7 @@ import DailyGoals from '@/pages/DailyGoals';
 import UserProfile from '@/pages/UserProfile';
 import TeamUpdates from '@/pages/TeamUpdates';
 import UserManagement from '@/pages/UserManagement';
+import ChangePassword from '@/pages/ChangePassword';
 
 function App() {
   return (
@@ -56,6 +57,7 @@ function App() {
             <Route path="daily-goals" element={<DailyGoals />} />
             <Route path="team-updates" element={<TeamUpdates />} />
             <Route path="profile/:userId" element={<UserProfile />} />
+            <Route path="change-password" element={<ChangePassword />} />
             <Route path="users" element={<ProtectedRoute requireAdmin><UserManagement /></ProtectedRoute>} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
