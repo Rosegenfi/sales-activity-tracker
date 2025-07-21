@@ -90,8 +90,9 @@ const Dashboard = () => {
       setPreviousResult(response.data);
       setShowResultForm(false);
       toast.success('Weekly results saved!');
-    } catch (error) {
-      toast.error('Failed to save results');
+    } catch (error: any) {
+      console.error('Failed to save results:', error);
+      toast.error(error.response?.data?.message || 'Failed to save results');
     }
   };
 

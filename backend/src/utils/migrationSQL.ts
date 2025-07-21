@@ -16,26 +16,26 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS weekly_commitments (
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    week_start DATE NOT NULL,
+    week_start_date DATE NOT NULL,
     calls_target INTEGER NOT NULL DEFAULT 0,
     emails_target INTEGER NOT NULL DEFAULT 0,
     meetings_target INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(user_id, week_start)
+    UNIQUE(user_id, week_start_date)
 );
 
 -- Create weekly_results table
 CREATE TABLE IF NOT EXISTS weekly_results (
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    week_start DATE NOT NULL,
+    week_start_date DATE NOT NULL,
     calls_actual INTEGER NOT NULL DEFAULT 0,
     emails_actual INTEGER NOT NULL DEFAULT 0,
     meetings_actual INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(user_id, week_start)
+    UNIQUE(user_id, week_start_date)
 );
 
 -- Create daily_goals table
