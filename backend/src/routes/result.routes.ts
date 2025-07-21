@@ -81,9 +81,9 @@ router.post('/', [
     const previousWeekStart = getPreviousWeekStartDate(new Date());
 
     const result = await pool.query(
-      `INSERT INTO weekly_results (user_id, week_start, calls_actual, emails_actual, meetings_actual)
+      `INSERT INTO weekly_results (user_id, week_start_date, calls_actual, emails_actual, meetings_actual)
        VALUES ($1, $2, $3, $4, $5)
-       ON CONFLICT (user_id, week_start)
+       ON CONFLICT (user_id, week_start_date)
        DO UPDATE SET 
          calls_actual = $3,
          emails_actual = $4,
@@ -97,7 +97,7 @@ router.post('/', [
 
     // Get commitments for percentage calculation
     const commitmentResult = await pool.query(
-      'SELECT calls_target, emails_target, meetings_target FROM weekly_commitments WHERE user_id = $1 AND week_start = $2',
+      'SELECT calls_target, emails_target, meetings_target FROM weekly_commitments WHERE user_id = $1 AND week_start_date = $2',
       [req.user!.id, previousWeekStart]
     );
 
@@ -105,7 +105,7 @@ router.post('/', [
 
     res.json({
       id: data.id,
-      weekStartDate: data.week_start,
+      weekStartDate: data.week_start_date,
       callsActual: data.calls_actual,
       emailsActual: data.emails_actual,
       meetingsActual: data.meetings_actual,
