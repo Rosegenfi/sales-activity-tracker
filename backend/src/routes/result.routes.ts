@@ -27,7 +27,7 @@ router.get('/previous', authenticate, async (req: AuthRequest, res) => {
 
     res.json({
       id: data.id,
-      weekStartDate: data.week_start,
+      weekStartDate: data.week_start_date,
       callsActual: data.calls_actual,
       emailsActual: data.emails_actual,
       meetingsActual: data.meetings_actual,
@@ -44,8 +44,22 @@ router.get('/previous', authenticate, async (req: AuthRequest, res) => {
           : 0
       }
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Get previous results error:', error);
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      detail: error.detail,
+      column: error.column
+    });
+    
+    if (error.message?.includes('week_start')) {
+      return res.status(500).json({ 
+        message: 'Database column error. Please contact support.',
+        detail: 'Column name mismatch detected' 
+      });
+    }
+    
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -101,9 +115,19 @@ router.post('/', [
         meetings: commitments.meetings_target ? Math.round((data.meetings_actual / commitments.meetings_target) * 100) : 0
       }
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Create/update results error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      detail: error.detail,
+      column: error.column
+    });
+    
+    res.status(500).json({ 
+      message: 'Failed to save results. Please try again.',
+      error: error.message 
+    });
   }
 });
 
