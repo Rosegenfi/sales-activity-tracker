@@ -141,14 +141,18 @@ const UserProfile = () => {
     );
   }
 
-  // Prepare chart data
-  const chartData = weekData.slice(0, 6).reverse().map(week => ({
-    week: format(new Date(week.weekStart), 'MMM d'),
-    calls: week.results?.callsActual || 0,
-    emails: week.results?.emailsActual || 0,
-    meetings: week.results?.meetingsActual || 0,
-    achievement: week.results?.percentages?.overall || 0
-  }));
+  // Prepare chart data - show last 2 weeks with actual results
+  const chartData = weekData
+    .filter(week => week.results && (week.results.callsActual > 0 || week.results.emailsActual > 0 || week.results.meetingsActual > 0))
+    .slice(0, 2)
+    .reverse()
+    .map(week => ({
+      week: format(new Date(week.weekStart), 'MMM d'),
+      calls: week.results?.callsActual || 0,
+      emails: week.results?.emailsActual || 0,
+      meetings: week.results?.meetingsActual || 0,
+      achievement: week.results?.percentages?.overall || 0
+    }));
 
   // Calculate stats
   const totalStats = weekData.reduce((acc, week) => {
@@ -245,7 +249,7 @@ const UserProfile = () => {
       {/* Performance Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="card">
-          <h2 className="text-lg font-semibold mb-4">Activity Trend</h2>
+          <h2 className="text-lg font-semibold mb-4">Activity (Last 2 Weeks)</h2>
           <ResponsiveContainer width="100%" height={250}>
             <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" />
@@ -260,7 +264,7 @@ const UserProfile = () => {
         </div>
 
         <div className="card">
-          <h2 className="text-lg font-semibold mb-4">Achievement Rate</h2>
+          <h2 className="text-lg font-semibold mb-4">Achievement Rate (Last 2 Weeks)</h2>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" />
