@@ -39,8 +39,11 @@ router.get('/previous', authenticate, async (req: AuthRequest, res) => {
         emails: data.emails_target ? Math.round((data.emails_actual / data.emails_target) * 100) : 0,
         meetings: data.meetings_target ? Math.round((data.meetings_actual / data.meetings_target) * 100) : 0,
         overall: data.calls_target || data.emails_target || data.meetings_target
-          ? Math.round(((data.calls_actual + data.emails_actual + data.meetings_actual) / 
-              (data.calls_target + data.emails_target + data.meetings_target)) * 100)
+          ? Math.round((
+              Math.min((data.calls_actual / (data.calls_target || 1)) * 100, 100) * 0.3333 +
+              Math.min((data.emails_actual / (data.emails_target || 1)) * 100, 100) * 0.3333 +
+              Math.min((data.meetings_actual / (data.meetings_target || 1)) * 100, 100) * 0.3333
+            ))
           : 0
       }
     });
@@ -158,7 +161,14 @@ router.get('/history', authenticate, async (req: AuthRequest, res) => {
       percentages: {
         calls: row.calls_target ? Math.round((row.calls_actual / row.calls_target) * 100) : 0,
         emails: row.emails_target ? Math.round((row.emails_actual / row.emails_target) * 100) : 0,
-        meetings: row.meetings_target ? Math.round((row.meetings_actual / row.meetings_target) * 100) : 0
+        meetings: row.meetings_target ? Math.round((row.meetings_actual / row.meetings_target) * 100) : 0,
+        overall: row.calls_target || row.emails_target || row.meetings_target
+          ? Math.round((
+              Math.min((row.calls_actual / (row.calls_target || 1)) * 100, 100) * 0.3333 +
+              Math.min((row.emails_actual / (row.emails_target || 1)) * 100, 100) * 0.3333 +
+              Math.min((row.meetings_actual / (row.meetings_target || 1)) * 100, 100) * 0.3333
+            ))
+          : 0
       }
     }));
 
@@ -205,7 +215,14 @@ router.get('/user/:userId/week/:weekStart', authenticate, async (req: AuthReques
       percentages: {
         calls: data.calls_target ? Math.round((data.calls_actual / data.calls_target) * 100) : 0,
         emails: data.emails_target ? Math.round((data.emails_actual / data.emails_target) * 100) : 0,
-        meetings: data.meetings_target ? Math.round((data.meetings_actual / data.meetings_target) * 100) : 0
+        meetings: data.meetings_target ? Math.round((data.meetings_actual / data.meetings_target) * 100) : 0,
+        overall: data.calls_target || data.emails_target || data.meetings_target
+          ? Math.round((
+              Math.min((data.calls_actual / (data.calls_target || 1)) * 100, 100) * 0.3333 +
+              Math.min((data.emails_actual / (data.emails_target || 1)) * 100, 100) * 0.3333 +
+              Math.min((data.meetings_actual / (data.meetings_target || 1)) * 100, 100) * 0.3333
+            ))
+          : 0
       }
     });
   } catch (error) {
@@ -247,7 +264,14 @@ router.get('/user/:userId/history', authenticate, async (req: AuthRequest, res) 
       percentages: {
         calls: row.calls_target ? Math.round((row.calls_actual / row.calls_target) * 100) : 0,
         emails: row.emails_target ? Math.round((row.emails_actual / row.emails_target) * 100) : 0,
-        meetings: row.meetings_target ? Math.round((row.meetings_actual / row.meetings_target) * 100) : 0
+        meetings: row.meetings_target ? Math.round((row.meetings_actual / row.meetings_target) * 100) : 0,
+        overall: row.calls_target || row.emails_target || row.meetings_target
+          ? Math.round((
+              Math.min((row.calls_actual / (row.calls_target || 1)) * 100, 100) * 0.3333 +
+              Math.min((row.emails_actual / (row.emails_target || 1)) * 100, 100) * 0.3333 +
+              Math.min((row.meetings_actual / (row.meetings_target || 1)) * 100, 100) * 0.3333
+            ))
+          : 0
       }
     }));
 

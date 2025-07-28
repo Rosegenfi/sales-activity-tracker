@@ -25,8 +25,11 @@ router.get('/', authenticate, async (req, res) => {
         CASE 
           WHEN (COALESCE(c.calls_target, 0) + COALESCE(c.emails_target, 0) + COALESCE(c.meetings_target, 0)) > 0
           THEN ROUND(
-            ((COALESCE(r.calls_actual, 0) + COALESCE(r.emails_actual, 0) + COALESCE(r.meetings_actual, 0))::numeric /
-            (COALESCE(c.calls_target, 0) + COALESCE(c.emails_target, 0) + COALESCE(c.meetings_target, 0))::numeric) * 100
+            (
+              LEAST(COALESCE(r.calls_actual, 0)::numeric / GREATEST(COALESCE(c.calls_target, 1), 1)::numeric * 100, 100) * 0.3333 +
+              LEAST(COALESCE(r.emails_actual, 0)::numeric / GREATEST(COALESCE(c.emails_target, 1), 1)::numeric * 100, 100) * 0.3333 +
+              LEAST(COALESCE(r.meetings_actual, 0)::numeric / GREATEST(COALESCE(c.meetings_target, 1), 1)::numeric * 100, 100) * 0.3333
+            )
           )
           ELSE 0
         END as achievement_percentage
