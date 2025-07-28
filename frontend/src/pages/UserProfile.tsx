@@ -342,9 +342,9 @@ const UserProfile = () => {
                     <td className="py-3 px-4 text-center">
                       {week.results?.percentages?.overall ? (
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          week.results.percentages.overall >= 100 ? 'bg-green-100 text-green-800' :
-                          week.results.percentages.overall >= 80 ? 'bg-yellow-100 text-yellow-800' :
-                          week.results.percentages.overall >= 60 ? 'bg-orange-100 text-orange-800' :
+                          week.results.percentages.overall >= 80 ? 'bg-green-100 text-green-800' :
+                          week.results.percentages.overall >= 60 ? 'bg-yellow-100 text-yellow-800' :
+                          week.results.percentages.overall >= 40 ? 'bg-orange-100 text-orange-800' :
                           'bg-red-100 text-red-800'
                         }`}>
                           {week.results.percentages.overall}%

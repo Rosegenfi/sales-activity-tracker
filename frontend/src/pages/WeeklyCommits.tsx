@@ -248,9 +248,9 @@ const WeeklyCommits = () => {
                     </td>
                     <td className="py-3 px-4 text-center">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        overallPercentage >= 100 ? 'bg-green-100 text-green-800' :
-                        overallPercentage >= 80 ? 'bg-yellow-100 text-yellow-800' :
-                        overallPercentage >= 60 ? 'bg-orange-100 text-orange-800' :
+                        overallPercentage >= 80 ? 'bg-green-100 text-green-800' :
+                        overallPercentage >= 60 ? 'bg-yellow-100 text-yellow-800' :
+                        overallPercentage >= 40 ? 'bg-orange-100 text-orange-800' :
                         'bg-red-100 text-red-800'
                       }`}>
                         {overallPercentage}%
