@@ -5,6 +5,23 @@ import { authenticate, authorize, AuthRequest } from '../middleware/auth.middlew
 
 const router = Router();
 
+const ALLOWED_CATEGORIES = [
+  'start_here',
+  'cold_calling',
+  'prospecting',
+  'cos_qc_onboarding',
+  'performance_accountability',
+  'product_market',
+  'training_development',
+  'client_templates_proposals',
+  'meetings_internal_comms',
+  // Backward compatibility
+  'presentations',
+  'tickets',
+  'events',
+  'qc_updates',
+];
+
 // Get all team updates
 router.get('/', authenticate, async (req, res) => {
   try {
@@ -76,7 +93,7 @@ router.post('/', [
   authenticate,
   authorize('admin'),
   body('title').notEmpty().trim(),
-  body('category').isIn(['presentations', 'tickets', 'events', 'qc_updates'])
+  body('category').isIn(ALLOWED_CATEGORIES)
 ], async (req: AuthRequest, res: Response) => {
   try {
     const errors = validationResult(req);
@@ -119,7 +136,7 @@ router.put('/:id', [
   authenticate,
   authorize('admin'),
   body('title').optional().notEmpty().trim(),
-  body('category').optional().isIn(['presentations', 'tickets', 'events', 'qc_updates'])
+  body('category').optional().isIn(ALLOWED_CATEGORIES)
 ], async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
