@@ -127,6 +127,7 @@ export const teamUpdateApi = {
     title: string;
     content?: string;
     category: TeamUpdate['category'];
+    section?: string;
     fileUrl?: string;
     externalLink?: string;
   }) => api.post<TeamUpdate>('/team-updates', data),

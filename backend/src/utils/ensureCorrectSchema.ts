@@ -41,6 +41,19 @@ export async function ensureCorrectSchema() {
       await pool.query('ALTER TABLE weekly_results RENAME COLUMN week_start TO week_start_date');
       console.log('Results table fixed!');
     }
+
+    // Ensure team_updates.section exists
+    const checkSection = await pool.query(`
+      SELECT column_name
+      FROM information_schema.columns
+      WHERE table_name = 'team_updates' AND column_name = 'section'
+    `);
+
+    if (checkSection.rows.length === 0) {
+      console.log('Adding section column to team_updates...');
+      await pool.query("ALTER TABLE team_updates ADD COLUMN section VARCHAR(100)");
+      console.log('section column added to team_updates');
+    }
     
     console.log('Schema check complete!');
     

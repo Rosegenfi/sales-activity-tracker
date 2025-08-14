@@ -55,6 +55,7 @@ const TeamUpdates = () => {
       title: formData.get('title') as string,
       content: formData.get('content') as string,
       category: formData.get('category') as TeamUpdate['category'],
+      section: (formData.get('section') as string) || undefined,
       externalLink: formData.get('externalLink') as string,
     };
 
@@ -99,6 +100,16 @@ const TeamUpdates = () => {
       </div>
     );
   }
+
+  // Group updates by section within the selected category view
+  const updatesBySection = updates.reduce((acc: Record<string, TeamUpdate[]>, item) => {
+    const key = item.section?.trim() || 'General';
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(item);
+    return acc;
+  }, {});
+
+  const sortedSectionEntries = Object.entries(updatesBySection).sort(([a], [b]) => a.localeCompare(b));
 
   return (
     <div className="space-y-6">
@@ -192,6 +203,18 @@ const TeamUpdates = () => {
             </div>
 
             <div>
+              <label className="block text-sm font-medium text-gray-700">Section (optional)</label>
+              <input
+                type="text"
+                name="section"
+                defaultValue={editingUpdate?.section || ''}
+                className="input-field mt-1"
+                placeholder="e.g., Scripts, Objection Handling, Templates"
+                maxLength={100}
+              />
+            </div>
+
+            <div>
               <label className="block text-sm font-medium text-gray-700">Content</label>
               <textarea
                 name="content"
@@ -233,76 +256,91 @@ const TeamUpdates = () => {
       )}
 
       {/* Updates List */}
-      <div className="space-y-4">
+      <div className="space-y-6">
         {updates.length === 0 ? (
           <div className="card text-center py-12">
             <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <p className="text-gray-500">No resources found</p>
           </div>
         ) : (
-          updates.map((update) => {
-            const def = HUB_CATEGORY_DEFS[update.category as keyof typeof HUB_CATEGORY_DEFS];
-            const Icon = def?.Icon || Tag;
-            const label = def?.label || formatCategoryLabel(update.category);
-            return (
-              <div key={update.id} className="card hover:shadow-md transition-shadow">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center mb-2">
-                      <Icon className="h-5 w-5 text-primary-600 mr-2" />
-                      <span className="text-sm font-medium text-primary-600">
-                        {label}
-                      </span>
-                      <span className="text-sm text-gray-500 ml-2">
-                        • {format(new Date(update.createdAt), 'MMM d, yyyy')}
-                      </span>
-                    </div>
-                    
-                    <h3 className="text-lg font-semibold mb-2">{update.title}</h3>
-                    
-                    {update.content && (
-                      <p className="text-gray-600 mb-3 whitespace-pre-wrap">{update.content}</p>
-                    )}
-                    
-                    {update.externalLink && (
-                      <a
-                        href={update.externalLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center text-primary-600 hover:text-primary-700 font-medium"
-                      >
-                        <LinkIcon className="h-4 w-4 mr-1" />
-                        View Link
-                      </a>
-                    )}
-                    
-                    {update.createdBy && (
-                      <p className="text-xs text-gray-500 mt-3">
-                        Posted by {update.createdBy.name}
-                      </p>
-                    )}
-                  </div>
-                  
-                  {user?.role === 'admin' && (
-                    <div className="flex items-center space-x-2 ml-4">
-                      <button
-                        onClick={() => handleEdit(update)}
-                        className="p-2 text-gray-500 hover:text-primary-600 transition-colors"
-                      >
-                        <Edit2 className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(update.id)}
-                        className="p-2 text-gray-500 hover:text-red-600 transition-colors"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  )}
-                </div>
+          sortedSectionEntries.map(([sectionName, sectionUpdates]) => (
+            <div key={sectionName} className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-md font-semibold text-gray-800">
+                  {sectionName}
+                </h3>
+                <span className="text-xs text-gray-500">{sectionUpdates.length} item{sectionUpdates.length !== 1 ? 's' : ''}</span>
               </div>
-            );
-          })
+              {sectionUpdates.map((update) => {
+                const def = HUB_CATEGORY_DEFS[update.category as keyof typeof HUB_CATEGORY_DEFS];
+                const Icon = def?.Icon || Tag;
+                const label = def?.label || formatCategoryLabel(update.category);
+                return (
+                  <div key={update.id} className="card hover:shadow-md transition-shadow">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center mb-2">
+                          <Icon className="h-5 w-5 text-primary-600 mr-2" />
+                          <span className="text-sm font-medium text-primary-600">
+                            {label}
+                          </span>
+                          {update.section && (
+                            <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-50 text-primary-700 border border-primary-200">
+                              {update.section}
+                            </span>
+                          )}
+                          <span className="text-sm text-gray-500 ml-2">
+                            • {format(new Date(update.createdAt), 'MMM d, yyyy')}
+                          </span>
+                        </div>
+                        
+                        <h3 className="text-lg font-semibold mb-2">{update.title}</h3>
+                        
+                        {update.content && (
+                          <p className="text-gray-600 mb-3 whitespace-pre-wrap">{update.content}</p>
+                        )}
+                        
+                        {update.externalLink && (
+                          <a
+                            href={update.externalLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center text-primary-600 hover:text-primary-700 font-medium"
+                          >
+                            <LinkIcon className="h-4 w-4 mr-1" />
+                            View Link
+                          </a>
+                        )}
+                        
+                        {update.createdBy && (
+                          <p className="text-xs text-gray-500 mt-3">
+                            Posted by {update.createdBy.name}
+                          </p>
+                        )}
+                      </div>
+                      
+                      {user?.role === 'admin' && (
+                        <div className="flex items-center space-x-2 ml-4">
+                          <button
+                            onClick={() => handleEdit(update)}
+                            className="p-2 text-gray-500 hover:text-primary-600 transition-colors"
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(update.id)}
+                            className="p-2 text-gray-500 hover:text-red-600 transition-colors"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ))
         )}
       </div>
     </div>

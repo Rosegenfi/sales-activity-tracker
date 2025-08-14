@@ -73,6 +73,7 @@ export interface TeamUpdate {
     | 'tickets'
     | 'events'
     | 'qc_updates';
+  section?: string;
   fileUrl?: string;
   externalLink?: string;
   createdBy?: {

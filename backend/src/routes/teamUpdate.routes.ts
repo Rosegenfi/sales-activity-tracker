@@ -33,7 +33,7 @@ router.get('/', authenticate, async (req, res) => {
       LEFT JOIN users u ON tu.created_by = u.id
     `;
     
-    const values = [];
+    const values: any[] = [];
     
     if (category) {
       query += ' WHERE tu.category = $1';
@@ -49,6 +49,7 @@ router.get('/', authenticate, async (req, res) => {
       title: update.title,
       content: update.content,
       category: update.category,
+      section: update.section,
       fileUrl: update.file_url,
       externalLink: update.external_link,
       createdBy: update.created_by ? {
@@ -93,7 +94,9 @@ router.post('/', [
   authenticate,
   authorize('admin'),
   body('title').notEmpty().trim(),
-  body('category').isIn(ALLOWED_CATEGORIES)
+  body('category').isIn(ALLOWED_CATEGORIES),
+  body('section').optional().isString().trim().isLength({ max: 100 }),
+  body('externalLink').optional().isString().isLength({ max: 500 }),
 ], async (req: AuthRequest, res: Response) => {
   try {
     const errors = validationResult(req);
@@ -101,13 +104,13 @@ router.post('/', [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { title, content, category, fileUrl, externalLink } = req.body;
+    const { title, content, category, section, fileUrl, externalLink } = req.body;
 
     const result = await pool.query(
-      `INSERT INTO team_updates (title, content, category, file_url, external_link, created_by)
-       VALUES ($1, $2, $3, $4, $5, $6)
+      `INSERT INTO team_updates (title, content, category, section, file_url, external_link, created_by)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING *`,
-      [title, content || null, category, fileUrl || null, externalLink || null, req.user!.id]
+      [title, content || null, category, section || null, fileUrl || null, externalLink || null, req.user!.id]
     );
 
     const update = result.rows[0];
@@ -117,6 +120,7 @@ router.post('/', [
       title: update.title,
       content: update.content,
       category: update.category,
+      section: update.section,
       fileUrl: update.file_url,
       externalLink: update.external_link,
       createdBy: {
@@ -136,15 +140,17 @@ router.put('/:id', [
   authenticate,
   authorize('admin'),
   body('title').optional().notEmpty().trim(),
-  body('category').optional().isIn(ALLOWED_CATEGORIES)
+  body('category').optional().isIn(ALLOWED_CATEGORIES),
+  body('section').optional().isString().trim().isLength({ max: 100 }),
+  body('externalLink').optional().isString().isLength({ max: 500 }),
 ], async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const { title, content, category, fileUrl, externalLink } = req.body;
+    const { title, content, category, section, fileUrl, externalLink } = req.body;
 
     // Build update query dynamically
-    const updates = [];
-    const values = [];
+    const updates: string[] = [];
+    const values: any[] = [];
     let paramCount = 0;
 
     if (title !== undefined) {
@@ -163,6 +169,12 @@ router.put('/:id', [
       paramCount++;
       updates.push(`category = $${paramCount}`);
       values.push(category);
+    }
+
+    if (section !== undefined) {
+      paramCount++;
+      updates.push(`section = $${paramCount}`);
+      values.push(section);
     }
 
     if (fileUrl !== undefined) {
@@ -204,6 +216,7 @@ router.put('/:id', [
       title: update.title,
       content: update.content,
       category: update.category,
+      section: update.section,
       fileUrl: update.file_url,
       externalLink: update.external_link,
       updatedAt: update.updated_at
