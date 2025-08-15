@@ -165,8 +165,9 @@ const Leaderboard = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-r from-primary-600 to-primary-700 rounded-lg p-6 text-white">
-        <div className="flex items-center justify-between">
+      <div className="relative overflow-hidden rounded-xl p-6 text-white bg-gradient-to-r from-primary-500 via-primary-600 to-primary-700">
+        <div className="absolute inset-0 opacity-30" style={{ background: 'radial-gradient(1200px 600px at -10% 0%, rgba(255,255,255,0.25), transparent 60%), radial-gradient(800px 400px at 120% 20%, rgba(255,255,255,0.2), transparent 60%)' }} />
+        <div className="relative flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold flex items-center">
               <Trophy className="h-8 w-8 mr-3" />
@@ -186,44 +187,44 @@ const Leaderboard = () => {
       {/* Team Summary */}
       {summary && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="stat-card">
+          <div className="stat-card rounded-xl">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Calls</p>
                 <p className="text-2xl font-bold">{summary.totals.callsActual}</p>
                 <p className="text-xs text-gray-600">Target {summary.totals.callsTarget} • {summary.percentages.calls}%</p>
               </div>
-              <Phone className="h-8 w-8 text-primary-600" />
+              <Phone className="h-8 w-8 text-primary-500" />
             </div>
           </div>
-          <div className="stat-card">
+          <div className="stat-card rounded-xl">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Emails</p>
                 <p className="text-2xl font-bold">{summary.totals.emailsActual}</p>
                 <p className="text-xs text-gray-600">Target {summary.totals.emailsTarget} • {summary.percentages.emails}%</p>
               </div>
-              <Mail className="h-8 w-8 text-primary-600" />
+              <Mail className="h-8 w-8 text-primary-500" />
             </div>
           </div>
-          <div className="stat-card">
+          <div className="stat-card rounded-xl">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Meetings</p>
                 <p className="text-2xl font-bold">{summary.totals.meetingsActual}</p>
                 <p className="text-xs text-gray-600">Target {summary.totals.meetingsTarget} • {summary.percentages.meetings}%</p>
               </div>
-              <UsersIcon className="h-8 w-8 text-primary-600" />
+              <UsersIcon className="h-8 w-8 text-primary-500" />
             </div>
           </div>
-          <div className="stat-card">
+          <div className="stat-card rounded-xl">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Participation</p>
                 <p className="text-2xl font-bold">{summary.aesWithResults}/{summary.totalAEs}</p>
                 <p className="text-xs text-gray-600">With targets: {summary.aesWithCommitments}/{summary.totalAEs}</p>
               </div>
-              <TrendingUp className="h-8 w-8 text-primary-600" />
+              <TrendingUp className="h-8 w-8 text-primary-500" />
             </div>
           </div>
         </div>
@@ -232,9 +233,9 @@ const Leaderboard = () => {
       {/* Highlights */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Top Callers */}
-        <div className="card">
+        <div className="card rounded-xl">
           <div className="flex items-center mb-4">
-            <Phone className="h-6 w-6 text-primary-600 mr-2" />
+            <Phone className="h-6 w-6 text-primary-500 mr-2" />
             <h2 className="text-lg font-semibold">Top Callers</h2>
           </div>
           <div className="space-y-3">
@@ -256,9 +257,9 @@ const Leaderboard = () => {
         </div>
 
         {/* Top Emailers */}
-        <div className="card">
+        <div className="card rounded-xl">
           <div className="flex items-center mb-4">
-            <Mail className="h-6 w-6 text-primary-600 mr-2" />
+            <Mail className="h-6 w-6 text-primary-500 mr-2" />
             <h2 className="text-lg font-semibold">Top Emailers</h2>
           </div>
           <div className="space-y-3">
@@ -280,9 +281,9 @@ const Leaderboard = () => {
         </div>
 
         {/* Top Meeting Bookers */}
-        <div className="card">
+        <div className="card rounded-xl">
           <div className="flex items-center mb-4">
-            <UsersIcon className="h-6 w-6 text-primary-600 mr-2" />
+            <UsersIcon className="h-6 w-6 text-primary-500 mr-2" />
             <h2 className="text-lg font-semibold">Top Meeting Bookers</h2>
           </div>
           <div className="space-y-3">
@@ -307,10 +308,10 @@ const Leaderboard = () => {
       {/* Additional Highlights */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Top Conversion (Total Activity → Meetings) */}
-        <div className="card">
+        <div className="card rounded-xl">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold">Top Conversion (Total Activity → Meetings)</h2>
-            <TrendingUp className="h-6 w-6 text-primary-600" />
+            <TrendingUp className="h-6 w-6 text-primary-500" />
           </div>
           <div className="space-y-3">
             {topTotalConverters.map((p, index) => (
@@ -334,7 +335,7 @@ const Leaderboard = () => {
         </div>
 
         {/* Achievement Snapshot */}
-        <div className="card">
+        <div className="card rounded-xl">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold">Achievement Snapshot</h2>
             <Star className="h-6 w-6 text-yellow-500" />
@@ -357,7 +358,7 @@ const Leaderboard = () => {
       </div>
 
       {/* Full Leaderboard */}
-      <div className="card">
+      <div className="card rounded-xl">
         <h2 className="text-lg font-semibold mb-4">Achievement Rankings</h2>
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -442,7 +443,7 @@ const Leaderboard = () => {
       </div>
 
       {/* Achievement Legend */}
-      <div className="card">
+      <div className="card rounded-xl">
         <h3 className="text-sm font-medium text-gray-700 mb-3">Achievement Legend</h3>
         <div className="flex flex-wrap gap-4">
           <div className="flex items-center">

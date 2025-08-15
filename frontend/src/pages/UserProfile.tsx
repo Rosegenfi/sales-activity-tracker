@@ -164,8 +164,9 @@ const UserProfile = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-r from-primary-600 to-primary-700 rounded-lg p-6 text-white">
-        <div className="flex items-center justify-between">
+      <div className="relative overflow-hidden rounded-xl p-6 text-white bg-gradient-to-r from-primary-500 via-primary-600 to-primary-700">
+        <div className="absolute inset-0 opacity-30" style={{ background: 'radial-gradient(1200px 600px at -10% 0%, rgba(255,255,255,0.25), transparent 60%), radial-gradient(800px 400px at 120% 20%, rgba(255,255,255,0.2), transparent 60%)' }} />
+        <div className="relative flex items-center justify-between">
           <div className="flex items-center">
             <div className="h-16 w-16 rounded-full bg-white/20 flex items-center justify-center text-2xl font-bold mr-4">
               {user.firstName[0]}{user.lastName[0]}
@@ -191,38 +192,38 @@ const UserProfile = () => {
 
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="stat-card">
+        <div className="stat-card rounded-xl">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Avg Weekly Calls</p>
               <p className="text-2xl font-bold">{avgStats.calls}</p>
             </div>
-            <Phone className="h-8 w-8 text-primary-600" />
+            <Phone className="h-8 w-8 text-primary-500" />
           </div>
         </div>
-        <div className="stat-card">
+        <div className="stat-card rounded-xl">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Avg Weekly Emails</p>
               <p className="text-2xl font-bold">{avgStats.emails}</p>
             </div>
-            <Mail className="h-8 w-8 text-primary-600" />
+            <Mail className="h-8 w-8 text-primary-500" />
           </div>
         </div>
-        <div className="stat-card">
+        <div className="stat-card rounded-xl">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Avg Weekly Meetings</p>
               <p className="text-2xl font-bold">{avgStats.meetings}</p>
             </div>
-            <Users className="h-8 w-8 text-primary-600" />
+            <Users className="h-8 w-8 text-primary-500" />
           </div>
         </div>
       </div>
 
       {/* Performance Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="card">
+        <div className="card rounded-xl">
           <h2 className="text-lg font-semibold mb-4">Activity Trend (Last 6 Weeks)</h2>
           <ResponsiveContainer width="100%" height={250}>
             <LineChart data={chartData}>
@@ -230,14 +231,14 @@ const UserProfile = () => {
               <XAxis dataKey="week" />
               <YAxis />
               <Tooltip />
-              <Line type="monotone" dataKey="calls" stroke="#6b8f7e" name="Calls" strokeWidth={2} />
+              <Line type="monotone" dataKey="calls" stroke="#81ac71" name="Calls" strokeWidth={2} />
               <Line type="monotone" dataKey="emails" stroke="#10b981" name="Emails" strokeWidth={2} />
               <Line type="monotone" dataKey="meetings" stroke="#f59e0b" name="Meetings" strokeWidth={2} />
             </LineChart>
           </ResponsiveContainer>
         </div>
 
-        <div className="card">
+        <div className="card rounded-xl">
           <h2 className="text-lg font-semibold mb-4">Achievement Rate (Last 6 Weeks)</h2>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={chartData}>
@@ -245,14 +246,14 @@ const UserProfile = () => {
               <XAxis dataKey="week" />
               <YAxis />
               <Tooltip />
-              <Bar dataKey="achievement" fill="#6b8f7e" name="Achievement %" />
+              <Bar dataKey="achievement" fill="#81ac71" name="Achievement %" />
             </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
 
       {/* Recent Performance */}
-      <div className="card">
+      <div className="card rounded-xl">
         <h2 className="text-lg font-semibold mb-4">Recent Weekly Performance</h2>
         <div className="overflow-x-auto">
           <table className="w-full">

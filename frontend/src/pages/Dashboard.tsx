@@ -16,8 +16,8 @@ import {
 import toast from 'react-hot-toast';
 
 const activityTypes: Array<{ key: 'call'|'email'|'meeting'|'social'; label: string; icon: any; color: string }> = [
-  { key: 'call', label: 'Calls', icon: Phone, color: 'text-primary-600' },
-  { key: 'email', label: 'Emails', icon: Mail, color: 'text-primary-600' },
+  { key: 'call', label: 'Calls', icon: Phone, color: 'text-primary-500' },
+  { key: 'email', label: 'Emails', icon: Mail, color: 'text-primary-500' },
   { key: 'meeting', label: 'Meetings', icon: Users, color: 'text-emerald-600' },
   { key: 'social', label: 'Social', icon: Sparkles, color: 'text-amber-600' },
 ];
@@ -118,13 +118,13 @@ const Dashboard = () => {
   return (
     <div className="space-y-6">
       {/* Hero */}
-      <div className="relative overflow-hidden rounded-lg p-6 text-white bg-gradient-to-r from-primary-600 via-primary-600 to-primary-700">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.15),transparent_40%),radial-gradient(circle_at_80%_0%,rgba(255,255,255,0.12),transparent_35%)]" />
+      <div className="relative overflow-hidden rounded-xl p-6 text-white bg-gradient-to-r from-primary-500 via-primary-600 to-primary-700">
+        <div className="absolute inset-0 opacity-30" style={{ background: 'radial-gradient(1200px 600px at -10% 0%, rgba(255,255,255,0.25), transparent 60%), radial-gradient(800px 400px at 120% 20%, rgba(255,255,255,0.2), transparent 60%)' }} />
         <div className="relative">
           <h1 className="text-2xl font-bold">Good morning, {user?.firstName}</h1>
           <p className="mt-2 text-primary-100">{todayStr}</p>
           <div className="mt-4 flex items-center gap-3">
-            <button onClick={() => setLoggingType('call')} className="btn-primary inline-flex items-center">
+            <button onClick={() => setLoggingType('call')} className="btn-primary inline-flex items-center rounded-lg">
               <PlusCircle className="h-4 w-4 mr-2" /> Log activity
             </button>
           </div>
@@ -140,7 +140,7 @@ const Dashboard = () => {
           const trendColor = pct == null ? 'text-gray-500' : pct >= 0 ? 'text-green-600' : 'text-amber-600';
           const trendPrefix = pct == null ? '' : pct >= 0 ? '▲' : '▼';
           return (
-            <div key={key} className="stat-card">
+            <div key={key} className="stat-card rounded-xl">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600">Last week {label}</p>
@@ -156,14 +156,14 @@ const Dashboard = () => {
 
       {/* Planner & Suggested Daily Split */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2 card">
+        <div className="lg:col-span-2 card rounded-xl">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold">Quick add</h2>
             <span className="text-sm text-gray-500">Log recent activity</span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {activityTypes.map(({ key, label, icon: Icon, color }) => (
-              <button key={key} onClick={() => logQuick(key, 1)} className="tile">
+              <button key={key} onClick={() => logQuick(key, 1)} className="tile rounded-xl">
                 <div className="flex items-center">
                   <Icon className={`h-6 w-6 mr-2 ${color}`} />
                   <span className="font-medium">+1 {label}</span>
@@ -176,13 +176,13 @@ const Dashboard = () => {
             <div className="mt-4 border-t pt-4">
               <div className="flex items-center gap-3">
                 <input type="number" min={1} value={quantity} onChange={(e) => setQuantity(parseInt(e.target.value || '1'))} className="input-field w-24" />
-                <button onClick={() => logQuick(loggingType!, quantity)} className="btn-primary">Add {quantity} {loggingType}</button>
-                <button onClick={() => { setLoggingType(null); setQuantity(1); }} className="btn-secondary">Cancel</button>
+                <button onClick={() => logQuick(loggingType!, quantity)} className="btn-primary rounded-lg">Add {quantity} {loggingType}</button>
+                <button onClick={() => { setLoggingType(null); setQuantity(1); }} className="btn-secondary rounded-lg">Cancel</button>
               </div>
             </div>
           )}
         </div>
-        <div className="card">
+        <div className="card rounded-xl">
           <h2 className="text-lg font-semibold mb-4">Suggested daily plan</h2>
           {weeklyCommitment ? (
             <div className="grid grid-cols-3 gap-4 text-center">
@@ -209,7 +209,7 @@ const Dashboard = () => {
                   <input name="meetingsTarget" type="number" min={0} placeholder="Meetings" className="input-field" required />
                 </div>
                 <div className="flex justify-end">
-                  <button type="submit" disabled={creatingCommitment} className="btn-primary">{creatingCommitment ? 'Saving...' : 'Save weekly goals'}</button>
+                  <button type="submit" disabled={creatingCommitment} className="btn-primary rounded-lg">{creatingCommitment ? 'Saving...' : 'Save weekly goals'}</button>
                 </div>
               </form>
             </div>
@@ -219,7 +219,7 @@ const Dashboard = () => {
 
       {/* Quick Links */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Link to="/leaderboard" className="card hover:shadow-md transition-shadow">
+        <Link to="/leaderboard" className="card hover:shadow-md transition-shadow rounded-xl">
           <div className="flex items-center">
             <TrendingUp className="h-10 w-10 text-yellow-600 mr-3" />
             <div>
@@ -228,7 +228,7 @@ const Dashboard = () => {
             </div>
           </div>
         </Link>
-        <Link to="/weekly-commits" className="card hover:shadow-md transition-shadow">
+        <Link to="/weekly-commits" className="card hover:shadow-md transition-shadow rounded-xl">
           <div className="flex items-center">
             <Calendar className="h-10 w-10 text-green-600 mr-3" />
             <div>
@@ -237,9 +237,9 @@ const Dashboard = () => {
             </div>
           </div>
         </Link>
-        <Link to="/team-updates" className="card hover:shadow-md transition-shadow">
+        <Link to="/team-updates" className="card hover:shadow-md transition-shadow rounded-xl">
           <div className="flex items-center">
-            <Sparkles className="h-10 w-10 text-primary-600 mr-3" />
+            <Sparkles className="h-10 w-10 text-primary-500 mr-3" />
             <div>
               <h3 className="font-semibold">AE Hub</h3>
               <p className="text-sm text-gray-600">Docs & resources</p>

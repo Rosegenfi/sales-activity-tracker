@@ -81,10 +81,10 @@ const AdminActivity = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">Activity Overview</h1>
-        <div className="text-sm text-gray-600 flex items-center"><Calendar className="h-4 w-4 mr-2" /> Week of {format(new Date(weekStart), 'MMM d, yyyy')}</div>
+        <div className="text-sm text-gray-600 flex items-center"><Calendar className="h-4 w-4 mr-2 text-primary-500" /> Week of {format(new Date(weekStart), 'MMM d, yyyy')}</div>
       </div>
 
-      <div className="card">
+      <div className="card rounded-xl">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -142,7 +142,7 @@ const AdminActivity = () => {
       </div>
 
       {/* Last Week Commitments vs Results */}
-      <div className="card">
+      <div className="card rounded-xl">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold">Last Week: Commitments vs Results</h2>
           {lastWeek && <div className="text-sm text-gray-600">Week of {format(new Date(lastWeek.weekStartDate), 'MMM d, yyyy')}</div>}
