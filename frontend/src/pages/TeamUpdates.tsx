@@ -65,6 +65,14 @@ const TeamUpdates = () => {
   const [editingUpdate, setEditingUpdate] = useState<TeamUpdate | null>(null);
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
 
+  const getErrorMessage = (error: any) => {
+    const resp = error?.response;
+    const msg = resp?.data?.message
+      || (Array.isArray(resp?.data?.errors) ? resp.data.errors.map((e: any) => e.msg).join(', ') : null)
+      || error?.message;
+    return msg || 'An unexpected error occurred';
+  };
+
   useEffect(() => {
     fetchUpdates();
   }, [selectedCategory]);
@@ -79,6 +87,7 @@ const TeamUpdates = () => {
       setUpdates(response.data);
     } catch (error) {
       console.error('Error fetching updates:', error);
+      toast.error(`Failed to load resources: ${getErrorMessage(error)}`);
     } finally {
       setLoading(false);
     }
@@ -93,7 +102,8 @@ const TeamUpdates = () => {
       }
       setCategoryCounts(counts);
     } catch (error) {
-      // Non-blocking: ignore count load errors
+      // Non-blocking: surface message but do not interrupt
+      console.warn('Failed to load category counts:', error);
     }
   };
 
@@ -122,8 +132,9 @@ const TeamUpdates = () => {
       setEditingUpdate(null);
       fetchUpdates();
       fetchCategoryCounts();
-    } catch (error) {
-      toast.error('Failed to save update');
+    } catch (error: any) {
+      const msg = getErrorMessage(error);
+      toast.error(`Failed to save update: ${msg}`);
     }
   };
 
@@ -135,8 +146,9 @@ const TeamUpdates = () => {
       toast.success('Update deleted successfully');
       fetchUpdates();
       fetchCategoryCounts();
-    } catch (error) {
-      toast.error('Failed to delete update');
+    } catch (error: any) {
+      const msg = getErrorMessage(error);
+      toast.error(`Failed to delete update: ${msg}`);
     }
   };
 
