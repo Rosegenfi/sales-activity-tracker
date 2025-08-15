@@ -87,29 +87,15 @@ const Leaderboard = () => {
       .map(e => ({ id: e.id, fullName: e.fullName, emailsActual: e.emailsActual }));
   }, [leaderboardData]);
 
-  const topCallConverters = useMemo(() => {
-    if (!leaderboardData) return [] as Array<{ id: number; fullName: string; rate: number; callsActual: number; meetingsActual: number }>;
+  const topTotalConverters = useMemo(() => {
+    if (!leaderboardData) return [] as Array<{ id: number; fullName: string; rate: number; activityTotal: number; meetingsActual: number }>;
     return leaderboardData.leaderboard
       .map(e => ({
         id: e.id,
         fullName: e.fullName,
-        callsActual: e.callsActual,
+        activityTotal: (e.callsActual || 0) + (e.emailsActual || 0),
         meetingsActual: e.meetingsActual,
-        rate: e.callsActual > 0 ? (e.meetingsActual / e.callsActual) : 0,
-      }))
-      .sort((a, b) => b.rate - a.rate)
-      .slice(0, 3);
-  }, [leaderboardData]);
-
-  const topEmailConverters = useMemo(() => {
-    if (!leaderboardData) return [] as Array<{ id: number; fullName: string; rate: number; emailsActual: number; meetingsActual: number }>;
-    return leaderboardData.leaderboard
-      .map(e => ({
-        id: e.id,
-        fullName: e.fullName,
-        emailsActual: e.emailsActual,
-        meetingsActual: e.meetingsActual,
-        rate: e.emailsActual > 0 ? (e.meetingsActual / e.emailsActual) : 0,
+        rate: ((e.callsActual || 0) + (e.emailsActual || 0)) > 0 ? (e.meetingsActual / ((e.callsActual || 0) + (e.emailsActual || 0))) : 0,
       }))
       .sort((a, b) => b.rate - a.rate)
       .slice(0, 3);
@@ -320,14 +306,14 @@ const Leaderboard = () => {
 
       {/* Additional Highlights */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Top Conversion (Calls → Meetings) */}
+        {/* Top Conversion (Total Activity → Meetings) */}
         <div className="card">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold">Top Conversion (Calls → Meetings)</h2>
+            <h2 className="text-lg font-semibold">Top Conversion (Total Activity → Meetings)</h2>
             <TrendingUp className="h-6 w-6 text-primary-600" />
           </div>
           <div className="space-y-3">
-            {topCallConverters.map((p, index) => (
+            {topTotalConverters.map((p, index) => (
               <div key={p.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div className="flex items-center">
                   <span className="text-2xl mr-3">{getRankBadge(index)?.icon}</span>
@@ -337,38 +323,11 @@ const Leaderboard = () => {
                 </div>
                 <div className="text-right">
                   <div className="font-bold text-primary-600">{Math.round(p.rate * 100)}</div>
-                  <div className="text-xs text-gray-500">{p.meetingsActual} mtgs / {p.callsActual} calls</div>
+                  <div className="text-xs text-gray-500">{p.meetingsActual} mtgs / {p.activityTotal} total</div>
                 </div>
               </div>
             ))}
-            {topCallConverters.length === 0 && (
-              <p className="text-sm text-gray-500">No activity yet</p>
-            )}
-          </div>
-        </div>
-
-        {/* Top Conversion (Emails → Meetings) */}
-        <div className="card">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold">Top Conversion (Emails → Meetings)</h2>
-            <TrendingUp className="h-6 w-6 text-primary-600" />
-          </div>
-          <div className="space-y-3">
-            {topEmailConverters.map((p, index) => (
-              <div key={p.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center">
-                  <span className="text-2xl mr-3">{getRankBadge(index)?.icon}</span>
-                  <Link to={`/profile/${p.id}`} className="font-medium hover:text-primary-600 transition-colors">
-                    {p.fullName}
-                  </Link>
-                </div>
-                <div className="text-right">
-                  <div className="font-bold text-primary-600">{Math.round(p.rate * 100)}</div>
-                  <div className="text-xs text-gray-500">{p.meetingsActual} mtgs / {p.emailsActual} emails</div>
-                </div>
-              </div>
-            ))}
-            {topEmailConverters.length === 0 && (
+            {topTotalConverters.length === 0 && (
               <p className="text-sm text-gray-500">No activity yet</p>
             )}
           </div>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { activityApi } from '@/services/api';
+import { activityApi, commitmentApi } from '@/services/api';
 import { format } from 'date-fns';
 import {
   Calendar,
@@ -25,19 +25,37 @@ const activityTypes: Array<{ key: 'call'|'email'|'meeting'|'social'; label: stri
 const Dashboard = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [week, setWeek] = useState<Record<string, number>>({});
   const [wow, setWoW] = useState<Record<string, { last: number; prior: number; delta: number; pct: number|null }>>({});
   const [loggingType, setLoggingType] = useState<null | 'call'|'email'|'meeting'|'social'|'other'>(null);
   const [quantity, setQuantity] = useState(1);
+  const [weeklyCommitment, setWeeklyCommitment] = useState<{ callsTarget: number; emailsTarget: number; meetingsTarget: number } | null>(null);
+  const [creatingCommitment, setCreatingCommitment] = useState(false);
 
   useEffect(() => {
     loadSummary();
+    loadCommitment();
   }, []);
+
+  const loadCommitment = async () => {
+    try {
+      const res = await commitmentApi.getCurrentCommitment();
+      if (res.data) {
+        setWeeklyCommitment({
+          callsTarget: res.data.callsTarget,
+          emailsTarget: res.data.emailsTarget,
+          meetingsTarget: res.data.meetingsTarget,
+        });
+      } else {
+        setWeeklyCommitment(null);
+      }
+    } catch (e) {
+      // ignore
+    }
+  };
 
   const loadSummary = async () => {
     try {
       const res = await activityApi.getMySummary();
-      setWeek(res.data.week || {});
       setWoW(res.data.wow || {});
     } catch (error) {
       console.error('Error loading activity summary', error);
@@ -59,7 +77,35 @@ const Dashboard = () => {
     }
   };
 
+  const handleCommitmentSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const form = new FormData(e.currentTarget);
+    const payload = {
+      callsTarget: parseInt((form.get('callsTarget') as string) || '0', 10),
+      emailsTarget: parseInt((form.get('emailsTarget') as string) || '0', 10),
+      meetingsTarget: parseInt((form.get('meetingsTarget') as string) || '0', 10),
+    };
+    try {
+      setCreatingCommitment(true);
+      await commitmentApi.createOrUpdateCommitment(payload);
+      toast.success('Weekly goals saved');
+      setWeeklyCommitment(payload);
+    } catch (e) {
+      toast.error('Failed to save weekly goals');
+    } finally {
+      setCreatingCommitment(false);
+    }
+  };
+
   const todayStr = format(new Date(), 'EEEE, MMMM d, yyyy');
+
+  const dailySplit = weeklyCommitment
+    ? {
+        calls: Math.max(0, Math.round(weeklyCommitment.callsTarget / 5)),
+        emails: Math.max(0, Math.round(weeklyCommitment.emailsTarget / 5)),
+        meetings: Math.max(0, Math.round(weeklyCommitment.meetingsTarget / 5)),
+      }
+    : null;
 
   if (loading) {
     return (
@@ -75,7 +121,7 @@ const Dashboard = () => {
       <div className="relative overflow-hidden rounded-lg p-6 text-white bg-gradient-to-r from-primary-600 via-primary-600 to-primary-700">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.15),transparent_40%),radial-gradient(circle_at_80%_0%,rgba(255,255,255,0.12),transparent_35%)]" />
         <div className="relative">
-          <h1 className="text-2xl font-bold">Good morning, {user?.firstName} — let’s make it a big week.</h1>
+          <h1 className="text-2xl font-bold">Good morning, {user?.firstName}</h1>
           <p className="mt-2 text-primary-100">{todayStr}</p>
           <div className="mt-4 flex items-center gap-3">
             <button onClick={() => setLoggingType('call')} className="btn-primary inline-flex items-center">
@@ -85,11 +131,11 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Weekly KPIs */}
+      {/* Last Week KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {activityTypes.map(({ key, label, icon: Icon, color }) => {
-          const w = week[key] || 0;
           const wRow = wow[key];
+          const last = wRow?.last || 0;
           const pct = wRow?.pct;
           const trendColor = pct == null ? 'text-gray-500' : pct >= 0 ? 'text-green-600' : 'text-amber-600';
           const trendPrefix = pct == null ? '' : pct >= 0 ? '▲' : '▼';
@@ -97,8 +143,8 @@ const Dashboard = () => {
             <div key={key} className="stat-card">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Week-to-date {label}</p>
-                  <p className="text-2xl font-bold">{w}</p>
+                  <p className="text-sm text-gray-600">Last week {label}</p>
+                  <p className="text-2xl font-bold">{last}</p>
                   <p className={`text-xs mt-1 ${trendColor}`}>WoW {trendPrefix}{pct == null ? '—' : `${Math.abs(pct)}%`}</p>
                 </div>
                 <Icon className={`h-8 w-8 ${color}`} />
@@ -108,12 +154,12 @@ const Dashboard = () => {
         })}
       </div>
 
-      {/* Action Planner */}
+      {/* Planner & Suggested Daily Split */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2 card">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold">Suggested split</h2>
-            <span className="text-sm text-gray-500">Quick add</span>
+            <h2 className="text-lg font-semibold">Quick add</h2>
+            <span className="text-sm text-gray-500">Log recent activity</span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {activityTypes.map(({ key, label, icon: Icon, color }) => (
@@ -137,22 +183,37 @@ const Dashboard = () => {
           )}
         </div>
         <div className="card">
-          <h2 className="text-lg font-semibold mb-4">This week momentum</h2>
-          <div className="space-y-3">
-            {activityTypes.map(({ key, label, icon: Icon, color }) => (
-              <div key={key} className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <Icon className={`h-5 w-5 mr-2 ${color}`} />
-                  <span className="text-sm text-gray-700">{label}</span>
-                </div>
-                <div className="text-sm font-semibold">{week[key] || 0}</div>
+          <h2 className="text-lg font-semibold mb-4">Suggested daily plan</h2>
+          {weeklyCommitment ? (
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div>
+                <p className="text-sm text-gray-600">Calls/day</p>
+                <p className="text-2xl font-bold text-primary-700">{dailySplit?.calls}</p>
               </div>
-            ))}
-          </div>
-          <div className="mt-4 flex items-center text-sm text-gray-600">
-            <TrendingUp className="h-4 w-4 mr-2 text-primary-600" />
-            Keep streaks alive: aim for activity every weekday.
-          </div>
+              <div>
+                <p className="text-sm text-gray-600">Emails/day</p>
+                <p className="text-2xl font-bold text-primary-700">{dailySplit?.emails}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Meetings/day</p>
+                <p className="text-2xl font-bold text-primary-700">{dailySplit?.meetings}</p>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <p className="text-sm text-gray-600 mb-3">Set your weekly goals to see your daily plan</p>
+              <form onSubmit={handleCommitmentSubmit} className="space-y-3">
+                <div className="grid grid-cols-3 gap-3">
+                  <input name="callsTarget" type="number" min={0} placeholder="Calls" className="input-field" required />
+                  <input name="emailsTarget" type="number" min={0} placeholder="Emails" className="input-field" required />
+                  <input name="meetingsTarget" type="number" min={0} placeholder="Meetings" className="input-field" required />
+                </div>
+                <div className="flex justify-end">
+                  <button type="submit" disabled={creatingCommitment} className="btn-primary">{creatingCommitment ? 'Saving...' : 'Save weekly goals'}</button>
+                </div>
+              </form>
+            </div>
+          )}
         </div>
       </div>
 
