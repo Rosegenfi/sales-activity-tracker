@@ -145,4 +145,14 @@ export const leaderboardApi = {
     api.get('/leaderboard/history', { params: { weeks } }),
 };
 
+// Activity endpoints
+export const activityApi = {
+  logEvent: (data: { activityType: 'call'|'email'|'meeting'|'social'|'other'; quantity?: number; durationSeconds?: number; source?: string; metadata?: any; occurredAt?: string; }) =>
+    api.post('/activity/events', data),
+  getMySummary: () => api.get('/activity/me/summary'),
+  getAdminOverview: () => api.get('/activity/admin/overview'),
+  getAdminDaily: (date?: string) => api.get('/activity/admin/daily', { params: { date } }),
+  getAdminWeekly: (weekStart?: string) => api.get('/activity/admin/weekly', { params: { weekStart } }),
+};
+
 export default api;

@@ -15,6 +15,7 @@ import resultRoutes from './routes/result.routes';
 import goalRoutes from './routes/goal.routes';
 import teamUpdateRoutes from './routes/teamUpdate.routes';
 import leaderboardRoutes from './routes/leaderboard.routes';
+import activityRoutes from './routes/activity.routes';
 
 dotenv.config();
 
@@ -39,6 +40,7 @@ app.use('/api/results', resultRoutes);
 app.use('/api/goals', goalRoutes);
 app.use('/api/team-updates', teamUpdateRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
+app.use('/api/activity', activityRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

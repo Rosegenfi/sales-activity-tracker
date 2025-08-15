@@ -44,3 +44,11 @@ export const getWeekRangeString = (weekStart: string): string => {
   
   return `${startStr} - ${endStr}`;
 };
+
+/**
+ * Compute ISO Monday week start string for an arbitrary date string
+ */
+export const getWeekStartFromDateString = (dateStr: string): string => {
+  const d = new Date(dateStr);
+  return getWeekStartDate(d);
+};
