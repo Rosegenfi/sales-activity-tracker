@@ -43,12 +43,12 @@ CREATE TABLE IF NOT EXISTS daily_goals (
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
     date DATE NOT NULL,
-    calls_target INTEGER NOT NULL DEFAULT 0,
-    emails_target INTEGER NOT NULL DEFAULT 0,
-    meetings_target INTEGER NOT NULL DEFAULT 0,
-    calls_actual INTEGER DEFAULT 0,
-    emails_actual INTEGER DEFAULT 0,
-    meetings_actual INTEGER DEFAULT 0,
+    calls_goal INTEGER NOT NULL DEFAULT 0,
+    emails_goal INTEGER NOT NULL DEFAULT 0,
+    meetings_goal INTEGER NOT NULL DEFAULT 0,
+    calls_achieved BOOLEAN DEFAULT false,
+    emails_achieved BOOLEAN DEFAULT false,
+    meetings_achieved BOOLEAN DEFAULT false,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(user_id, date)
@@ -65,9 +65,46 @@ CREATE TABLE IF NOT EXISTS team_updates (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- New: Create activity tables for event logging and rollups
+CREATE TABLE IF NOT EXISTS activity_event (
+    id BIGSERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    activity_type TEXT NOT NULL CHECK (activity_type IN ('call','email','meeting','social','other')),
+    quantity INTEGER NOT NULL DEFAULT 1,
+    duration_seconds INTEGER,
+    source TEXT,
+    metadata JSONB,
+    occurred_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_activity_event_user_time ON activity_event(user_id, occurred_at);
+CREATE INDEX IF NOT EXISTS idx_activity_event_type_time ON activity_event(activity_type, occurred_at);
+
+CREATE TABLE IF NOT EXISTS activity_daily (
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    activity_date DATE NOT NULL,
+    activity_type TEXT NOT NULL CHECK (activity_type IN ('call','email','meeting','social','other')),
+    total_quantity INTEGER NOT NULL DEFAULT 0,
+    total_duration_seconds INTEGER,
+    PRIMARY KEY (user_id, activity_date, activity_type)
+);
+
+CREATE INDEX IF NOT EXISTS idx_activity_daily_user_date ON activity_daily(user_id, activity_date);
+
+CREATE TABLE IF NOT EXISTS activity_weekly (
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    week_start DATE NOT NULL,
+    activity_type TEXT NOT NULL CHECK (activity_type IN ('call','email','meeting','social','other')),
+    total_quantity INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (user_id, week_start, activity_type)
+);
+
+CREATE INDEX IF NOT EXISTS idx_activity_weekly_user_week ON activity_weekly(user_id, week_start);
+
 -- Create indexes for better performance
-CREATE INDEX idx_weekly_commitments_user_week ON weekly_commitments(user_id, week_start);
-CREATE INDEX idx_weekly_results_user_week ON weekly_results(user_id, week_start);
+CREATE INDEX idx_weekly_commitments_user_week ON weekly_commitments(user_id, week_start_date);
+CREATE INDEX idx_weekly_results_user_week ON weekly_results(user_id, week_start_date);
 CREATE INDEX idx_daily_goals_user_date ON daily_goals(user_id, date);
 CREATE INDEX idx_team_updates_category ON team_updates(category);
 

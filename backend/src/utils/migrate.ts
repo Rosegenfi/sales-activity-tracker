@@ -80,6 +80,46 @@ const createTables = async () => {
       )
     `);
 
+    // New: activity tables
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS activity_event (
+        id BIGSERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        activity_type TEXT NOT NULL CHECK (activity_type IN ('call','email','meeting','social','other')),
+        quantity INTEGER NOT NULL DEFAULT 1,
+        duration_seconds INTEGER,
+        source TEXT,
+        metadata JSONB,
+        occurred_at TIMESTAMPTZ NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+      );
+    `);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_activity_event_user_time ON activity_event(user_id, occurred_at);`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_activity_event_type_time ON activity_event(activity_type, occurred_at);`);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS activity_daily (
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        activity_date DATE NOT NULL,
+        activity_type TEXT NOT NULL CHECK (activity_type IN ('call','email','meeting','social','other')),
+        total_quantity INTEGER NOT NULL DEFAULT 0,
+        total_duration_seconds INTEGER,
+        PRIMARY KEY (user_id, activity_date, activity_type)
+      );
+    `);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_activity_daily_user_date ON activity_daily(user_id, activity_date);`);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS activity_weekly (
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        week_start DATE NOT NULL,
+        activity_type TEXT NOT NULL CHECK (activity_type IN ('call','email','meeting','social','other')),
+        total_quantity INTEGER NOT NULL DEFAULT 0,
+        PRIMARY KEY (user_id, week_start, activity_type)
+      );
+    `);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_activity_weekly_user_week ON activity_weekly(user_id, week_start);`);
+
     // Create indexes for better performance
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_weekly_commitments_user_date ON weekly_commitments(user_id, week_start_date)`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_weekly_results_user_date ON weekly_results(user_id, week_start_date)`);

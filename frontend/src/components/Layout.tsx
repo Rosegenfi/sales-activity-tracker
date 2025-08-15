@@ -11,6 +11,7 @@ import {
   X,
   ChevronDown,
   BookOpen,
+  BarChart3,
 } from 'lucide-react';
 import { useState } from 'react';
 import clsx from 'clsx';
@@ -32,6 +33,7 @@ const Layout = () => {
 
   if (user?.role === 'admin') {
     navigation.push({ name: 'User Management', href: '/users', icon: Users });
+    navigation.push({ name: 'Admin Activity', href: '/admin/activity', icon: BarChart3 });
   }
 
   const isActive = (path: string) => {
@@ -206,6 +208,15 @@ const Layout = () => {
                               className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                             >
                               User Management
+                            </button>
+                            <button
+                              onClick={() => {
+                                navigate('/admin/activity');
+                                setIsProfileDropdownOpen(false);
+                              }}
+                              className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            >
+                              Admin Activity
                             </button>
                           </>
                         )}
