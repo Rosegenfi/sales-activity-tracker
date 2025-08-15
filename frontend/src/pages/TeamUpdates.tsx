@@ -7,14 +7,46 @@ import toast from 'react-hot-toast';
 import type { TeamUpdate } from '@/types';
 
 const HUB_CATEGORY_DEFS = {
-  start_here: { label: 'Start Here - New Joiners Guides', Icon: BookOpen },
-  cold_calling: { label: 'Cold Calling', Icon: Phone },
-  prospecting: { label: 'Prospecting', Icon: Search },
-  cos_qc_onboarding: { label: 'Cos, QC & Onboarding', Icon: ShieldCheck },
-  performance_accountability: { label: 'Performance and Accountability', Icon: BarChart2 },
-  product_market: { label: 'Product and Market', Icon: Box },
-  training_development: { label: 'Extra Training and Development', Icon: GraduationCap },
-  client_templates_proposals: { label: 'Client templates and proposals', Icon: FileText },
+  start_here: {
+    label: 'Start Here, New Joiners Guides',
+    description: 'Setup, expectations, week one checklist, core playbooks.',
+    Icon: BookOpen,
+  },
+  cold_calling: {
+    label: 'Cold Calling',
+    description: 'Open strong, qualify fast, handle objections, stay compliant.',
+    Icon: Phone,
+  },
+  prospecting: {
+    label: 'Prospecting',
+    description: 'ICP, triggers, research, personalization, cadences, data sources.',
+    Icon: Search,
+  },
+  cos_qc_onboarding: {
+    label: 'COS, QC, and Onboarding',
+    description: 'COS process, QC standards, ticket instructions, reference docs, onboarding escalations.',
+    Icon: ShieldCheck,
+  },
+  performance_accountability: {
+    label: 'Performance and Accountability',
+    description: 'Targets, pipeline hygiene, CRM analytics, Looker guides.',
+    Icon: BarChart2,
+  },
+  product_market: {
+    label: 'Product and Market',
+    description: 'Product basics, pricing, use cases, competitors, value proof.',
+    Icon: Box,
+  },
+  training_development: {
+    label: 'Extra Training and Development',
+    description: 'Upselling, discovery, best practices.',
+    Icon: GraduationCap,
+  },
+  client_templates_proposals: {
+    label: 'Client Templates and Proposals',
+    description: 'Emails, proposals, calculators, decks, case studies.',
+    Icon: FileText,
+  },
   meetings_internal_comms: { label: 'Meetings and Internal Comms', Icon: Users },
 } as const;
 
@@ -131,6 +163,10 @@ const TeamUpdates = () => {
 
   const sortedSectionEntries = Object.entries(updatesBySection).sort(([a], [b]) => a.localeCompare(b));
 
+  const selectedDef = selectedCategory
+    ? (HUB_CATEGORY_DEFS as Record<string, any>)[selectedCategory]
+    : undefined;
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -173,7 +209,7 @@ const TeamUpdates = () => {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {Object.entries(HUB_CATEGORY_DEFS).map(([key, def]) => {
-            const Icon = def.Icon;
+            const Icon = (def as any).Icon;
             const isActive = selectedCategory === key;
             const count = categoryCounts[key] ?? 0;
             return (
@@ -187,8 +223,10 @@ const TeamUpdates = () => {
                     <Icon className="h-6 w-6" />
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-gray-900">{def.label}</div>
-                    <div className="text-xs text-gray-500">{formatCategoryLabel(key)}</div>
+                    <div className="text-sm font-medium text-gray-900">{(def as any).label}</div>
+                    {(def as any).description && (
+                      <div className="text-xs text-gray-500 truncate max-w-[16rem]">{(def as any).description}</div>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -199,6 +237,25 @@ const TeamUpdates = () => {
           })}
         </div>
       </div>
+
+      {selectedDef && (
+        <div className="card">
+          <div className="flex items-start">
+            <div className="h-12 w-12 rounded-lg flex items-center justify-center mr-4 bg-primary-50 text-primary-700">
+              {(() => {
+                const Icon = selectedDef.Icon || Tag;
+                return <Icon className="h-6 w-6" />;
+              })()}
+            </div>
+            <div className="flex-1">
+              <h2 className="text-lg font-semibold text-gray-900">{selectedDef.label}</h2>
+              {selectedDef.description && (
+                <p className="text-sm text-gray-600 mt-1">{selectedDef.description}</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Create/Edit Form */}
       {showForm && (
@@ -228,7 +285,7 @@ const TeamUpdates = () => {
               >
                 <option value="">Select category</option>
                 {Object.entries(HUB_CATEGORY_DEFS).map(([key, def]) => (
-                  <option key={key} value={key}>{def.label}</option>
+                  <option key={key} value={key}>{(def as any).label || formatCategoryLabel(key)}</option>
                 ))}
               </select>
             </div>
@@ -303,7 +360,7 @@ const TeamUpdates = () => {
                 <span className="text-xs text-gray-500">{sectionUpdates.length} item{sectionUpdates.length !== 1 ? 's' : ''}</span>
               </div>
               {sectionUpdates.map((update) => {
-                const def = HUB_CATEGORY_DEFS[update.category as keyof typeof HUB_CATEGORY_DEFS];
+                const def = HUB_CATEGORY_DEFS[update.category as keyof typeof HUB_CATEGORY_DEFS] as any;
                 const Icon = def?.Icon || Tag;
                 const label = def?.label || formatCategoryLabel(update.category);
                 return (
