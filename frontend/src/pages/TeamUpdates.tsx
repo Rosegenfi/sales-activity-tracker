@@ -212,7 +212,7 @@ const TeamUpdates = () => {
               <div
                 key={key}
                 onClick={() => setSelectedCategory(key)}
-                className={`tile ${isActive ? 'tile-active' : ''} relative group`}
+                className={`tile ${isActive ? 'tile-active' : ''} relative group z-10 hover:z-50`}
               >
                 <div className="flex items-center">
                   <div className={`h-12 w-12 rounded-lg flex items-center justify-center mr-4 ${isActive ? 'bg-primary-100 text-primary-700' : 'bg-gray-100 text-gray-700'}`}>
@@ -226,7 +226,7 @@ const TeamUpdates = () => {
                   <span className="tile-badge">{count}</span>
                 </div>
                 {(def as any).description && (
-                  <div className="absolute z-20 left-1/2 -translate-x-1/2 top-full mt-2 w-72 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="absolute z-50 left-1/2 -translate-x-1/2 top-full mt-2 w-72 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
                     <div className="bg-gray-900 text-white text-xs leading-snug rounded-md px-3 py-2 shadow-lg border border-gray-800 break-words">
                       {(def as any).description}
                     </div>
