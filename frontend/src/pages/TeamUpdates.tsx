@@ -31,10 +31,15 @@ const TeamUpdates = () => {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingUpdate, setEditingUpdate] = useState<TeamUpdate | null>(null);
+  const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
     fetchUpdates();
   }, [selectedCategory]);
+
+  useEffect(() => {
+    fetchCategoryCounts();
+  }, []);
 
   const fetchUpdates = async () => {
     try {
@@ -44,6 +49,19 @@ const TeamUpdates = () => {
       console.error('Error fetching updates:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCategoryCounts = async () => {
+    try {
+      const response = await teamUpdateApi.getCategories();
+      const counts: Record<string, number> = {};
+      for (const item of response.data) {
+        counts[item.name] = item.count;
+      }
+      setCategoryCounts(counts);
+    } catch (error) {
+      // Non-blocking: ignore count load errors
     }
   };
 
@@ -71,6 +89,7 @@ const TeamUpdates = () => {
       setShowForm(false);
       setEditingUpdate(null);
       fetchUpdates();
+      fetchCategoryCounts();
     } catch (error) {
       toast.error('Failed to save update');
     }
@@ -83,6 +102,7 @@ const TeamUpdates = () => {
       await teamUpdateApi.delete(id);
       toast.success('Update deleted successfully');
       fetchUpdates();
+      fetchCategoryCounts();
     } catch (error) {
       toast.error('Failed to delete update');
     }
@@ -140,32 +160,43 @@ const TeamUpdates = () => {
         </div>
       </div>
 
-      {/* Category Filter */}
+      {/* Category Filter - redesigned as tile grid */}
       <div className="card">
-        <div className="flex flex-wrap gap-2">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold">Categories</h2>
           <button
             onClick={() => setSelectedCategory('')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              selectedCategory === ''
-                ? 'bg-primary-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
+            className={`text-sm font-medium ${selectedCategory === '' ? 'text-primary-700' : 'text-gray-600 hover:text-gray-800'}`}
           >
-            All Categories
+            Clear filter
           </button>
-          {Object.entries(HUB_CATEGORY_DEFS).map(([key, def]) => (
-            <button
-              key={key}
-              onClick={() => setSelectedCategory(key)}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                selectedCategory === key
-                  ? 'bg-primary-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              {def.label}
-            </button>
-          ))}
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {Object.entries(HUB_CATEGORY_DEFS).map(([key, def]) => {
+            const Icon = def.Icon;
+            const isActive = selectedCategory === key;
+            const count = categoryCounts[key] ?? 0;
+            return (
+              <div
+                key={key}
+                onClick={() => setSelectedCategory(key)}
+                className={`tile ${isActive ? 'tile-active' : ''}`}
+              >
+                <div className="flex items-center">
+                  <div className={`h-12 w-12 rounded-lg flex items-center justify-center mr-4 ${isActive ? 'bg-primary-100 text-primary-700' : 'bg-gray-100 text-gray-700'}`}>
+                    <Icon className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-gray-900">{def.label}</div>
+                    <div className="text-xs text-gray-500">{formatCategoryLabel(key)}</div>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="tile-badge">{count}</span>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
