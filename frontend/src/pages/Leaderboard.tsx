@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { leaderboardApi } from '@/services/api';
-import { Trophy, Phone, Users as UsersIcon, Star, Mail, TrendingUp } from 'lucide-react';
+import { Trophy, Phone, Users as UsersIcon, Star, Mail } from 'lucide-react';
 import { format } from 'date-fns';
 import type { LeaderboardData } from '@/types';
 
@@ -85,20 +85,6 @@ const Leaderboard = () => {
       .sort((a, b) => (b.emailsActual || 0) - (a.emailsActual || 0))
       .slice(0, 3)
       .map(e => ({ id: e.id, fullName: e.fullName, emailsActual: e.emailsActual }));
-  }, [leaderboardData]);
-
-  const topTotalConverters = useMemo(() => {
-    if (!leaderboardData) return [] as Array<{ id: number; fullName: string; rate: number; activityTotal: number; meetingsActual: number }>;
-    return leaderboardData.leaderboard
-      .map(e => ({
-        id: e.id,
-        fullName: e.fullName,
-        activityTotal: (e.callsActual || 0) + (e.emailsActual || 0),
-        meetingsActual: e.meetingsActual,
-        rate: ((e.callsActual || 0) + (e.emailsActual || 0)) > 0 ? (e.meetingsActual / ((e.callsActual || 0) + (e.emailsActual || 0))) : 0,
-      }))
-      .sort((a, b) => b.rate - a.rate)
-      .slice(0, 3);
   }, [leaderboardData]);
 
   const wowByUser = useMemo(() => {
@@ -186,7 +172,7 @@ const Leaderboard = () => {
 
       {/* Team Summary */}
       {summary && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-4">
           <div className="stat-card rounded-xl">
             <div className="flex items-center justify-between">
               <div>
@@ -215,16 +201,6 @@ const Leaderboard = () => {
                 <p className="text-xs text-gray-600">Target {summary.totals.meetingsTarget} • {summary.percentages.meetings}%</p>
               </div>
               <UsersIcon className="h-8 w-8 text-primary-500" />
-            </div>
-          </div>
-          <div className="stat-card rounded-xl">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Participation</p>
-                <p className="text-2xl font-bold">{summary.aesWithResults}/{summary.totalAEs}</p>
-                <p className="text-xs text-gray-600">With targets: {summary.aesWithCommitments}/{summary.totalAEs}</p>
-              </div>
-              <TrendingUp className="h-8 w-8 text-primary-500" />
             </div>
           </div>
         </div>
@@ -305,54 +281,24 @@ const Leaderboard = () => {
         </div>
       </div>
 
-      {/* Additional Highlights */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Top Conversion (Total Activity → Meetings) */}
-        <div className="card rounded-xl">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold">Top Conversion (Total Activity → Meetings)</h2>
-            <TrendingUp className="h-6 w-6 text-primary-500" />
-          </div>
-          <div className="space-y-3">
-            {topTotalConverters.map((p, index) => (
-              <div key={p.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center">
-                  <span className="text-2xl mr-3">{getRankBadge(index)?.icon}</span>
-                  <Link to={`/profile/${p.id}`} className="font-medium hover:text-primary-600 transition-colors">
-                    {p.fullName}
-                  </Link>
-                </div>
-                <div className="text-right">
-                  <div className="font-bold text-primary-600">{Math.round(p.rate * 100)}</div>
-                  <div className="text-xs text-gray-500">{p.meetingsActual} mtgs / {p.activityTotal} total</div>
-                </div>
-              </div>
-            ))}
-            {topTotalConverters.length === 0 && (
-              <p className="text-sm text-gray-500">No activity yet</p>
-            )}
-          </div>
+      {/* Achievement Snapshot */}
+      <div className="card rounded-xl">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold">Achievement Snapshot</h2>
+          <Star className="h-6 w-6 text-yellow-500" />
         </div>
-
-        {/* Achievement Snapshot */}
-        <div className="card rounded-xl">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold">Achievement Snapshot</h2>
-            <Star className="h-6 w-6 text-yellow-500" />
+        <div className="grid grid-cols-3 gap-4">
+          <div className="text-center">
+            <p className="text-sm text-gray-600">Average</p>
+            <p className="text-2xl font-bold">{avgAndMedian.avg}%</p>
           </div>
-          <div className="grid grid-cols-3 gap-4">
-            <div className="text-center">
-              <p className="text-sm text-gray-600">Average</p>
-              <p className="text-2xl font-bold">{avgAndMedian.avg}%</p>
-            </div>
-            <div className="text-center">
-              <p className="text-sm text-gray-600">Median</p>
-              <p className="text-2xl font-bold">{avgAndMedian.median}%</p>
-            </div>
-            <div className="text-center">
-              <p className="text-sm text-gray-600">≥80%</p>
-              <p className="text-2xl font-bold">{avgAndMedian.over80}%</p>
-            </div>
+          <div className="text-center">
+            <p className="text-sm text-gray-600">Median</p>
+            <p className="text-2xl font-bold">{avgAndMedian.median}%</p>
+          </div>
+          <div className="text-center">
+            <p className="text-sm text-gray-600">≥80%</p>
+            <p className="text-2xl font-bold">{avgAndMedian.over80}%</p>
           </div>
         </div>
       </div>

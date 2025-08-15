@@ -10,8 +10,6 @@ import {
   Users,
   TrendingUp,
   Sparkles,
-  PlusCircle,
-  CheckCircle,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -26,8 +24,6 @@ const Dashboard = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [wow, setWoW] = useState<Record<string, { last: number; prior: number; delta: number; pct: number|null }>>({});
-  const [loggingType, setLoggingType] = useState<null | 'call'|'email'|'meeting'|'social'|'other'>(null);
-  const [quantity, setQuantity] = useState(1);
   const [weeklyCommitment, setWeeklyCommitment] = useState<{ callsTarget: number; emailsTarget: number; meetingsTarget: number } | null>(null);
   const [creatingCommitment, setCreatingCommitment] = useState(false);
 
@@ -62,18 +58,6 @@ const Dashboard = () => {
       toast.error('Failed to load dashboard');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const logQuick = async (type: 'call'|'email'|'meeting'|'social'|'other', qty = 1) => {
-    try {
-      await activityApi.logEvent({ activityType: type, quantity: qty });
-      toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} +${qty}`);
-      await loadSummary();
-      setLoggingType(null);
-      setQuantity(1);
-    } catch (e) {
-      toast.error('Failed to log activity');
     }
   };
 
@@ -123,11 +107,6 @@ const Dashboard = () => {
         <div className="relative">
           <h1 className="text-2xl font-bold">Good morning, {user?.firstName}</h1>
           <p className="mt-2 text-primary-100">{todayStr}</p>
-          <div className="mt-4 flex items-center gap-3">
-            <button onClick={() => setLoggingType('call')} className="btn-primary inline-flex items-center rounded-lg">
-              <PlusCircle className="h-4 w-4 mr-2" /> Log activity
-            </button>
-          </div>
         </div>
       </div>
 
@@ -154,34 +133,8 @@ const Dashboard = () => {
         })}
       </div>
 
-      {/* Planner & Suggested Daily Split */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2 card rounded-xl">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold">Quick add</h2>
-            <span className="text-sm text-gray-500">Log recent activity</span>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {activityTypes.map(({ key, label, icon: Icon, color }) => (
-              <button key={key} onClick={() => logQuick(key, 1)} className="tile rounded-xl">
-                <div className="flex items-center">
-                  <Icon className={`h-6 w-6 mr-2 ${color}`} />
-                  <span className="font-medium">+1 {label}</span>
-                </div>
-                <CheckCircle className="h-5 w-5 text-success-600" />
-              </button>
-            ))}
-          </div>
-          {loggingType && (
-            <div className="mt-4 border-t pt-4">
-              <div className="flex items-center gap-3">
-                <input type="number" min={1} value={quantity} onChange={(e) => setQuantity(parseInt(e.target.value || '1'))} className="input-field w-24" />
-                <button onClick={() => logQuick(loggingType!, quantity)} className="btn-primary rounded-lg">Add {quantity} {loggingType}</button>
-                <button onClick={() => { setLoggingType(null); setQuantity(1); }} className="btn-secondary rounded-lg">Cancel</button>
-              </div>
-            </div>
-          )}
-        </div>
+      {/* Suggested Daily Plan */}
+      <div className="grid grid-cols-1 gap-4">
         <div className="card rounded-xl">
           <h2 className="text-lg font-semibold mb-4">Suggested daily plan</h2>
           {weeklyCommitment ? (

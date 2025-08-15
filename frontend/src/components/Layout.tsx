@@ -42,8 +42,8 @@ const Layout = () => {
     <div className="min-h-screen bg-gray-50">
       {/* Desktop Sidebar */}
       <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
-        <div className="flex flex-col flex-1 bg-primary-900">
-          <div className="flex items-center justify-center h-16 bg-primary-950 px-4">
+        <div className="flex flex-col flex-1 bg-primary-100">
+          <div className="flex items-center justify-center h-16 bg-primary-200 px-4">
             {/* Logo - Replace /images/logo.png with your actual logo path */}
             <img 
               src="/images/logo.png" 
@@ -55,7 +55,7 @@ const Layout = () => {
                 e.currentTarget.nextElementSibling?.classList.remove('hidden');
               }}
             />
-            <h1 className="hidden text-white text-xl font-bold">Sales Tracker</h1>
+            <h1 className="hidden text-primary-900 text-xl font-bold">Sales Tracker</h1>
           </div>
           <nav className="flex-1 px-2 py-4 space-y-1">
             {navigation.map((item) => {
@@ -67,8 +67,8 @@ const Layout = () => {
                   className={clsx(
                     'group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors',
                     isActive(item.href)
-                      ? 'bg-primary-800 text-white'
-                      : 'text-primary-100 hover:bg-primary-800 hover:text-white'
+                      ? 'bg-primary-200 text-primary-900'
+                      : 'text-primary-900 hover:bg-primary-200 hover:text-primary-900'
                   )}
                 >
                   <Icon className="mr-3 h-5 w-5" />
@@ -77,10 +77,10 @@ const Layout = () => {
               );
             })}
           </nav>
-          <div className="flex-shrink-0 flex border-t border-primary-800 p-4">
+          <div className="flex-shrink-0 flex border-t border-primary-200 p-4">
             <button
               onClick={logout}
-              className="flex items-center text-primary-100 hover:text-white transition-colors"
+              className="flex items-center text-primary-900 hover:text-primary-900 transition-colors"
             >
               <LogOut className="mr-3 h-5 w-5" />
               <span className="text-sm font-medium">Logout</span>
@@ -91,7 +91,7 @@ const Layout = () => {
 
       {/* Mobile Header */}
       <div className="lg:hidden">
-        <div className="bg-primary-900 px-4 py-3 flex items-center justify-between">
+        <div className="bg-primary-600 px-4 py-3 flex items-center justify-between">
           <div className="flex items-center">
             <img 
               src="/images/logo.png" 
@@ -114,7 +114,7 @@ const Layout = () => {
         
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="bg-primary-900 px-2 py-2 space-y-1">
+          <div className="bg-primary-600 px-2 py-2 space-y-1">
             {navigation.map((item) => {
               const Icon = item.icon;
               return (
@@ -125,8 +125,8 @@ const Layout = () => {
                   className={clsx(
                     'flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors',
                     isActive(item.href)
-                      ? 'bg-primary-800 text-white'
-                      : 'text-primary-100 hover:bg-primary-800 hover:text-white'
+                      ? 'bg-primary-700 text-white'
+                      : 'text-white hover:bg-primary-700 hover:text-white'
                   )}
                 >
                   <Icon className="mr-3 h-5 w-5" />
@@ -136,7 +136,7 @@ const Layout = () => {
             })}
             <button
               onClick={logout}
-              className="w-full flex items-center px-3 py-2 text-sm font-medium text-primary-100 hover:text-white hover:bg-primary-800 rounded-md transition-colors"
+              className="w-full flex items-center px-3 py-2 text-sm font-medium text-white hover:text-white hover:bg-primary-700 rounded-md transition-colors"
             >
               <LogOut className="mr-3 h-5 w-5" />
               Logout
