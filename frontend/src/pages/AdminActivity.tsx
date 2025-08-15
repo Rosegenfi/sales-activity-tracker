@@ -26,6 +26,7 @@ const AdminActivity = () => {
   const [weekStart] = useState<string>(format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd'));
   const [rows, setRows] = useState<AdminRow[]>([]);
   const [history, setHistory] = useState<HistoryWeek[]>([]);
+  const [prevWeekStart, setPrevWeekStart] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingPerf, setLoadingPerf] = useState(true);
 
@@ -48,9 +49,12 @@ const AdminActivity = () => {
   const fetchHistory = async () => {
     try {
       setLoadingPerf(true);
-      // Fetch last 8 weeks to compute fallback targets if last week is missing
-      const res = await leaderboardApi.getHistory(8);
-      setHistory(res.data as HistoryWeek[]);
+      const [lbRes, histRes] = await Promise.all([
+        leaderboardApi.getLeaderboard(),
+        leaderboardApi.getHistory(8)
+      ]);
+      setPrevWeekStart(lbRes.data.weekStartDate);
+      setHistory(histRes.data as HistoryWeek[]);
     } finally {
       setLoadingPerf(false);
     }
@@ -58,24 +62,28 @@ const AdminActivity = () => {
 
   const allTypes = ['call','email','meeting','social'];
 
-  const lastWeek = history[0];
+  const lastWeek = useMemo(() => {
+    if (!prevWeekStart) return undefined;
+    return history.find(w => w.weekStartDate === prevWeekStart);
+  }, [history, prevWeekStart]);
 
   // Build per-user per-metric fallback targets from prior weeks (excluding last week)
   const fallbackTargetsByUser = useMemo(() => {
     const map = new Map<number, { calls?: number; emails?: number; meetings?: number }>();
-    // Iterate over older weeks after the first (lastWeek)
-    for (let i = 1; i < history.length; i++) {
-      const wk = history[i];
-      wk.aes.forEach(ae => {
-        const current = map.get(ae.id) || {};
-        if (!current.calls && ae.targets.calls && ae.targets.calls > 0) current.calls = ae.targets.calls;
-        if (!current.emails && ae.targets.emails && ae.targets.emails > 0) current.emails = ae.targets.emails;
-        if (!current.meetings && ae.targets.meetings && ae.targets.meetings > 0) current.meetings = ae.targets.meetings;
-        map.set(ae.id, current);
+    const skipWeek = prevWeekStart;
+    history
+      .filter(w => w.weekStartDate !== skipWeek)
+      .forEach(wk => {
+        wk.aes.forEach(ae => {
+          const current = map.get(ae.id) || {};
+          if (!current.calls && ae.targets.calls && ae.targets.calls > 0) current.calls = ae.targets.calls;
+          if (!current.emails && ae.targets.emails && ae.targets.emails > 0) current.emails = ae.targets.emails;
+          if (!current.meetings && ae.targets.meetings && ae.targets.meetings > 0) current.meetings = ae.targets.meetings;
+          map.set(ae.id, current);
+        });
       });
-    }
     return map;
-  }, [history]);
+  }, [history, prevWeekStart]);
 
   const pct = (actual: number, target: number) => {
     if (!target || target <= 0) return 0;
