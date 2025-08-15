@@ -1,12 +1,33 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { leaderboardApi } from '@/services/api';
-import { Trophy, Phone, Users as UsersIcon, Star } from 'lucide-react';
+import { Trophy, Phone, Users as UsersIcon, Star, Mail, TrendingUp } from 'lucide-react';
 import { format } from 'date-fns';
 import type { LeaderboardData } from '@/types';
 
+interface LeaderboardSummary {
+  weekStartDate: string;
+  totalAEs: number;
+  aesWithCommitments: number;
+  aesWithResults: number;
+  totals: {
+    callsTarget: number;
+    callsActual: number;
+    emailsTarget: number;
+    emailsActual: number;
+    meetingsTarget: number;
+    meetingsActual: number;
+  };
+  percentages: {
+    calls: number;
+    emails: number;
+    meetings: number;
+  };
+}
+
 const Leaderboard = () => {
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardData | null>(null);
+  const [summary, setSummary] = useState<LeaderboardSummary | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -15,14 +36,56 @@ const Leaderboard = () => {
 
   const fetchLeaderboard = async () => {
     try {
-      const response = await leaderboardApi.getLeaderboard();
-      setLeaderboardData(response.data);
+      const [lbRes, sumRes] = await Promise.all([
+        leaderboardApi.getLeaderboard(),
+        leaderboardApi.getSummary(),
+      ]);
+      setLeaderboardData(lbRes.data);
+      setSummary(sumRes.data as LeaderboardSummary);
     } catch (error) {
       console.error('Error fetching leaderboard:', error);
     } finally {
       setLoading(false);
     }
   };
+
+  const avgAndMedian = useMemo(() => {
+    if (!leaderboardData) return { avg: 0, median: 0, over80: 0 };
+    const values = leaderboardData.leaderboard
+      .filter(e => e.hasData)
+      .map(e => e.achievementPercentage)
+      .sort((a, b) => a - b);
+    if (values.length === 0) return { avg: 0, median: 0, over80: 0 };
+    const avg = Math.round(values.reduce((a, b) => a + b, 0) / values.length);
+    const mid = Math.floor(values.length / 2);
+    const median = values.length % 2 === 0 ? Math.round((values[mid - 1] + values[mid]) / 2) : values[mid];
+    const over80 = Math.round((values.filter(v => v >= 80).length / values.length) * 100);
+    return { avg, median, over80 };
+  }, [leaderboardData]);
+
+  const topEmailers = useMemo(() => {
+    if (!leaderboardData) return [] as Array<{ id: number; fullName: string; emailsActual: number }>;
+    return leaderboardData.leaderboard
+      .slice()
+      .sort((a, b) => (b.emailsActual || 0) - (a.emailsActual || 0))
+      .slice(0, 3)
+      .map(e => ({ id: e.id, fullName: e.fullName, emailsActual: e.emailsActual }));
+  }, [leaderboardData]);
+
+  const topConverters = useMemo(() => {
+    if (!leaderboardData) return [] as Array<{ id: number; fullName: string; rate: number; callsActual: number; meetingsActual: number }>;
+    return leaderboardData.leaderboard
+      .filter(e => (e.callsActual || 0) >= 20) // ignore very low volume
+      .map(e => ({
+        id: e.id,
+        fullName: e.fullName,
+        callsActual: e.callsActual,
+        meetingsActual: e.meetingsActual,
+        rate: e.callsActual > 0 ? (e.meetingsActual / e.callsActual) : 0,
+      }))
+      .sort((a, b) => b.rate - a.rate)
+      .slice(0, 3);
+  }, [leaderboardData]);
 
   if (loading) {
     return (
@@ -75,8 +138,54 @@ const Leaderboard = () => {
         </div>
       </div>
 
-      {/* Top Performers */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Team Summary */}
+      {summary && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="stat-card">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Calls</p>
+                <p className="text-2xl font-bold">{summary.totals.callsActual}</p>
+                <p className="text-xs text-gray-600">Target {summary.totals.callsTarget} • {summary.percentages.calls}%</p>
+              </div>
+              <Phone className="h-8 w-8 text-primary-600" />
+            </div>
+          </div>
+          <div className="stat-card">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Emails</p>
+                <p className="text-2xl font-bold">{summary.totals.emailsActual}</p>
+                <p className="text-xs text-gray-600">Target {summary.totals.emailsTarget} • {summary.percentages.emails}%</p>
+              </div>
+              <Mail className="h-8 w-8 text-primary-600" />
+            </div>
+          </div>
+          <div className="stat-card">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Meetings</p>
+                <p className="text-2xl font-bold">{summary.totals.meetingsActual}</p>
+                <p className="text-xs text-gray-600">Target {summary.totals.meetingsTarget} • {summary.percentages.meetings}%</p>
+              </div>
+              <UsersIcon className="h-8 w-8 text-primary-600" />
+            </div>
+          </div>
+          <div className="stat-card">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Participation</p>
+                <p className="text-2xl font-bold">{summary.aesWithResults}/{summary.totalAEs}</p>
+                <p className="text-xs text-gray-600">With targets: {summary.aesWithCommitments}/{summary.totalAEs}</p>
+              </div>
+              <TrendingUp className="h-8 w-8 text-primary-600" />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Highlights */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Top Callers */}
         <div className="card">
           <div className="flex items-center mb-4">
@@ -96,6 +205,30 @@ const Leaderboard = () => {
                   </Link>
                 </div>
                 <span className="font-bold text-primary-600">{caller.callsActual}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Top Emailers */}
+        <div className="card">
+          <div className="flex items-center mb-4">
+            <Mail className="h-6 w-6 text-primary-600 mr-2" />
+            <h2 className="text-lg font-semibold">Top Emailers</h2>
+          </div>
+          <div className="space-y-3">
+            {topEmailers.map((p, index) => (
+              <div key={p.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center">
+                  <span className="text-2xl mr-3">{getRankBadge(index)?.icon}</span>
+                  <Link 
+                    to={`/profile/${p.id}`}
+                    className="font-medium hover:text-primary-600 transition-colors"
+                  >
+                    {p.fullName}
+                  </Link>
+                </div>
+                <span className="font-bold text-primary-600">{p.emailsActual}</span>
               </div>
             ))}
           </div>
@@ -122,6 +255,58 @@ const Leaderboard = () => {
                 <span className="font-bold text-primary-600">{booker.meetingsActual}</span>
               </div>
             ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Additional Highlights */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Top Conversion */}
+        <div className="card">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold">Top Conversion (Meetings per 100 Calls)</h2>
+            <TrendingUp className="h-6 w-6 text-primary-600" />
+          </div>
+          <div className="space-y-3">
+            {topConverters.map((p, index) => (
+              <div key={p.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center">
+                  <span className="text-2xl mr-3">{getRankBadge(index)?.icon}</span>
+                  <Link to={`/profile/${p.id}`} className="font-medium hover:text-primary-600 transition-colors">
+                    {p.fullName}
+                  </Link>
+                </div>
+                <div className="text-right">
+                  <div className="font-bold text-primary-600">{Math.round(p.rate * 100)}</div>
+                  <div className="text-xs text-gray-500">{p.meetingsActual} mtgs / {p.callsActual} calls</div>
+                </div>
+              </div>
+            ))}
+            {topConverters.length === 0 && (
+              <p className="text-sm text-gray-500">Not enough call volume to calculate conversion</p>
+            )}
+          </div>
+        </div>
+
+        {/* Achievement Snapshot */}
+        <div className="card">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold">Achievement Snapshot</h2>
+            <Star className="h-6 w-6 text-yellow-500" />
+          </div>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="text-center">
+              <p className="text-sm text-gray-600">Average</p>
+              <p className="text-2xl font-bold">{avgAndMedian.avg}%</p>
+            </div>
+            <div className="text-center">
+              <p className="text-sm text-gray-600">Median</p>
+              <p className="text-2xl font-bold">{avgAndMedian.median}%</p>
+            </div>
+            <div className="text-center">
+              <p className="text-sm text-gray-600">≥80%</p>
+              <p className="text-2xl font-bold">{avgAndMedian.over80}%</p>
+            </div>
           </div>
         </div>
       </div>
