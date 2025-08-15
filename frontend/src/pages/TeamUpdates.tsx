@@ -163,10 +163,6 @@ const TeamUpdates = () => {
 
   const sortedSectionEntries = Object.entries(updatesBySection).sort(([a], [b]) => a.localeCompare(b));
 
-  const selectedDef = selectedCategory
-    ? (HUB_CATEGORY_DEFS as Record<string, any>)[selectedCategory]
-    : undefined;
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -216,7 +212,7 @@ const TeamUpdates = () => {
               <div
                 key={key}
                 onClick={() => setSelectedCategory(key)}
-                className={`tile ${isActive ? 'tile-active' : ''}`}
+                className={`tile ${isActive ? 'tile-active' : ''} relative group`}
               >
                 <div className="flex items-center">
                   <div className={`h-12 w-12 rounded-lg flex items-center justify-center mr-4 ${isActive ? 'bg-primary-100 text-primary-700' : 'bg-gray-100 text-gray-700'}`}>
@@ -224,38 +220,23 @@ const TeamUpdates = () => {
                   </div>
                   <div>
                     <div className="text-sm font-medium text-gray-900">{(def as any).label}</div>
-                    {(def as any).description && (
-                      <div className="text-xs text-gray-500 truncate max-w-[16rem]">{(def as any).description}</div>
-                    )}
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
                   <span className="tile-badge">{count}</span>
                 </div>
+                {(def as any).description && (
+                  <div className="absolute z-20 left-1/2 -translate-x-1/2 top-full mt-2 w-72 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="bg-gray-900 text-white text-xs leading-snug rounded-md px-3 py-2 shadow-lg border border-gray-800 break-words">
+                      {(def as any).description}
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })}
         </div>
       </div>
-
-      {selectedDef && (
-        <div className="card">
-          <div className="flex items-start">
-            <div className="h-12 w-12 rounded-lg flex items-center justify-center mr-4 bg-primary-50 text-primary-700">
-              {(() => {
-                const Icon = selectedDef.Icon || Tag;
-                return <Icon className="h-6 w-6" />;
-              })()}
-            </div>
-            <div className="flex-1">
-              <h2 className="text-lg font-semibold text-gray-900">{selectedDef.label}</h2>
-              {selectedDef.description && (
-                <p className="text-sm text-gray-600 mt-1">{selectedDef.description}</p>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Create/Edit Form */}
       {showForm && (
