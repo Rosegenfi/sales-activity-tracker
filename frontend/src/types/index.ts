@@ -58,7 +58,22 @@ export interface TeamUpdate {
   id: number;
   title: string;
   content?: string;
-  category: 'presentations' | 'tickets' | 'events' | 'qc_updates';
+  category:
+    | 'start_here'
+    | 'cold_calling'
+    | 'prospecting'
+    | 'cos_qc_onboarding'
+    | 'performance_accountability'
+    | 'product_market'
+    | 'training_development'
+    | 'client_templates_proposals'
+    | 'meetings_internal_comms'
+    // Backward compatibility with existing categories
+    | 'presentations'
+    | 'tickets'
+    | 'events'
+    | 'qc_updates';
+  section?: string;
   fileUrl?: string;
   externalLink?: string;
   createdBy?: {

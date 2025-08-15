@@ -6,11 +6,11 @@ import {
   Calendar,
   Target,
   Users,
-  MessageSquare,
   LogOut,
   Menu,
   X,
   ChevronDown,
+  BookOpen,
 } from 'lucide-react';
 import { useState } from 'react';
 import clsx from 'clsx';
@@ -27,7 +27,7 @@ const Layout = () => {
     { name: 'Leaderboard', href: '/leaderboard', icon: Trophy },
     { name: 'Weekly Commits', href: '/weekly-commits', icon: Calendar },
     { name: 'Daily Goals', href: '/daily-goals', icon: Target },
-    { name: 'Team Updates', href: '/team-updates', icon: MessageSquare },
+    { name: 'AE Hub', href: '/team-updates', icon: BookOpen },
   ];
 
   if (user?.role === 'admin') {
@@ -198,6 +198,15 @@ const Layout = () => {
                             <div className="px-4 py-2 text-xs text-gray-500 uppercase tracking-wide">
                               Admin
                             </div>
+                            <button
+                              onClick={() => {
+                                navigate('/users');
+                                setIsProfileDropdownOpen(false);
+                              }}
+                              className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            >
+                              User Management
+                            </button>
                           </>
                         )}
                       </div>
@@ -209,9 +218,9 @@ const Layout = () => {
           </div>
         </div>
 
-        {/* Page Content */}
-        <main className="flex-1">
-          <div className="py-6 px-4 sm:px-6 lg:px-8">
+        {/* Outlet */}
+        <main className="py-6">
+          <div className="px-4 sm:px-6 lg:px-8">
             <Outlet />
           </div>
         </main>

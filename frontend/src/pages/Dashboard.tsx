@@ -13,6 +13,7 @@ import {
   CheckCircle,
   Target,
   Trophy,
+  BookOpen,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import type { WeeklyCommitment, WeeklyResult } from '@/types';
@@ -430,10 +431,10 @@ const Dashboard = () => {
         </Link>
         <Link to="/team-updates" className="card hover:shadow-md transition-shadow">
           <div className="flex items-center">
-            <AlertCircle className="h-10 w-10 text-blue-600 mr-3" />
+            <BookOpen className="h-10 w-10 text-blue-600 mr-3" />
             <div>
-              <h3 className="font-semibold">Team Updates</h3>
-              <p className="text-sm text-gray-600">Latest announcements</p>
+              <h3 className="font-semibold">AE Hub</h3>
+              <p className="text-sm text-gray-600">Documents & resources</p>
             </div>
           </div>
         </Link>

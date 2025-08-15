@@ -1,24 +1,28 @@
 import { useState, useEffect } from 'react';
 import { teamUpdateApi } from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
-import { MessageSquare, FileText, Link as LinkIcon, Calendar, Tag, Plus, Edit2, Trash2 } from 'lucide-react';
+import { MessageSquare, FileText, Link as LinkIcon, Tag, Plus, Edit2, Trash2, BookOpen, Phone, Search, ShieldCheck, BarChart2, Box, GraduationCap, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import type { TeamUpdate } from '@/types';
 
-const categoryIcons = {
-  presentations: FileText,
-  tickets: LinkIcon,
-  events: Calendar,
-  qc_updates: Tag,
-};
+const HUB_CATEGORY_DEFS = {
+  start_here: { label: 'Start Here - New Joiners Guides', Icon: BookOpen },
+  cold_calling: { label: 'Cold Calling', Icon: Phone },
+  prospecting: { label: 'Prospecting', Icon: Search },
+  cos_qc_onboarding: { label: 'Cos, QC & Onboarding', Icon: ShieldCheck },
+  performance_accountability: { label: 'Performance and Accountability', Icon: BarChart2 },
+  product_market: { label: 'Product and Market', Icon: Box },
+  training_development: { label: 'Extra Training and Development', Icon: GraduationCap },
+  client_templates_proposals: { label: 'Client templates and proposals', Icon: FileText },
+  meetings_internal_comms: { label: 'Meetings and Internal Comms', Icon: Users },
+} as const;
 
-const categoryLabels = {
-  presentations: 'Presentations & Guides',
-  tickets: 'Ticket Links',
-  events: 'Upcoming Events',
-  qc_updates: 'QC Updates',
-};
+function formatCategoryLabel(key: string): string {
+  return key
+    .replace(/[_-]+/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
 
 const TeamUpdates = () => {
   const { user } = useAuth();
@@ -50,7 +54,8 @@ const TeamUpdates = () => {
     const updateData = {
       title: formData.get('title') as string,
       content: formData.get('content') as string,
-      category: formData.get('category') as 'presentations' | 'tickets' | 'events' | 'qc_updates',
+      category: formData.get('category') as TeamUpdate['category'],
+      section: (formData.get('section') as string) || undefined,
       externalLink: formData.get('externalLink') as string,
     };
 
@@ -96,6 +101,16 @@ const TeamUpdates = () => {
     );
   }
 
+  // Group updates by section within the selected category view
+  const updatesBySection = updates.reduce((acc: Record<string, TeamUpdate[]>, item) => {
+    const key = item.section?.trim() || 'General';
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(item);
+    return acc;
+  }, {});
+
+  const sortedSectionEntries = Object.entries(updatesBySection).sort(([a], [b]) => a.localeCompare(b));
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -104,10 +119,10 @@ const TeamUpdates = () => {
           <div>
             <h1 className="text-2xl font-bold flex items-center">
               <MessageSquare className="h-8 w-8 mr-3" />
-              Team Updates
+              AE Hub
             </h1>
             <p className="mt-2 text-primary-100">
-              Important announcements and resources
+              Documents, templates, and resources for Account Executives
             </p>
           </div>
           {user?.role === 'admin' && (
@@ -119,7 +134,7 @@ const TeamUpdates = () => {
               className="btn-primary bg-white text-primary-600 hover:bg-gray-100"
             >
               <Plus className="h-5 w-5 mr-2" />
-              New Update
+              New Resource
             </button>
           )}
         </div>
@@ -138,7 +153,7 @@ const TeamUpdates = () => {
           >
             All Categories
           </button>
-          {Object.entries(categoryLabels).map(([key, label]) => (
+          {Object.entries(HUB_CATEGORY_DEFS).map(([key, def]) => (
             <button
               key={key}
               onClick={() => setSelectedCategory(key)}
@@ -148,7 +163,7 @@ const TeamUpdates = () => {
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
-              {label}
+              {def.label}
             </button>
           ))}
         </div>
@@ -158,7 +173,7 @@ const TeamUpdates = () => {
       {showForm && (
         <div className="card">
           <h2 className="text-lg font-semibold mb-4">
-            {editingUpdate ? 'Edit Update' : 'Create New Update'}
+            {editingUpdate ? 'Edit Resource' : 'Create New Resource'}
           </h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -181,10 +196,22 @@ const TeamUpdates = () => {
                 className="input-field mt-1"
               >
                 <option value="">Select category</option>
-                {Object.entries(categoryLabels).map(([key, label]) => (
-                  <option key={key} value={key}>{label}</option>
+                {Object.entries(HUB_CATEGORY_DEFS).map(([key, def]) => (
+                  <option key={key} value={key}>{def.label}</option>
                 ))}
               </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Section (optional)</label>
+              <input
+                type="text"
+                name="section"
+                defaultValue={editingUpdate?.section || ''}
+                className="input-field mt-1"
+                placeholder="e.g., Scripts, Objection Handling, Templates"
+                maxLength={100}
+              />
             </div>
 
             <div>
@@ -229,74 +256,91 @@ const TeamUpdates = () => {
       )}
 
       {/* Updates List */}
-      <div className="space-y-4">
+      <div className="space-y-6">
         {updates.length === 0 ? (
           <div className="card text-center py-12">
             <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500">No updates found</p>
+            <p className="text-gray-500">No resources found</p>
           </div>
         ) : (
-          updates.map((update) => {
-            const Icon = categoryIcons[update.category as keyof typeof categoryIcons];
-            return (
-              <div key={update.id} className="card hover:shadow-md transition-shadow">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center mb-2">
-                      <Icon className="h-5 w-5 text-primary-600 mr-2" />
-                      <span className="text-sm font-medium text-primary-600">
-                        {categoryLabels[update.category as keyof typeof categoryLabels]}
-                      </span>
-                      <span className="text-sm text-gray-500 ml-2">
-                        • {format(new Date(update.createdAt), 'MMM d, yyyy')}
-                      </span>
-                    </div>
-                    
-                    <h3 className="text-lg font-semibold mb-2">{update.title}</h3>
-                    
-                    {update.content && (
-                      <p className="text-gray-600 mb-3 whitespace-pre-wrap">{update.content}</p>
-                    )}
-                    
-                    {update.externalLink && (
-                      <a
-                        href={update.externalLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center text-primary-600 hover:text-primary-700 font-medium"
-                      >
-                        <LinkIcon className="h-4 w-4 mr-1" />
-                        View Link
-                      </a>
-                    )}
-                    
-                    {update.createdBy && (
-                      <p className="text-xs text-gray-500 mt-3">
-                        Posted by {update.createdBy.name}
-                      </p>
-                    )}
-                  </div>
-                  
-                  {user?.role === 'admin' && (
-                    <div className="flex items-center space-x-2 ml-4">
-                      <button
-                        onClick={() => handleEdit(update)}
-                        className="p-2 text-gray-500 hover:text-primary-600 transition-colors"
-                      >
-                        <Edit2 className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(update.id)}
-                        className="p-2 text-gray-500 hover:text-red-600 transition-colors"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  )}
-                </div>
+          sortedSectionEntries.map(([sectionName, sectionUpdates]) => (
+            <div key={sectionName} className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-md font-semibold text-gray-800">
+                  {sectionName}
+                </h3>
+                <span className="text-xs text-gray-500">{sectionUpdates.length} item{sectionUpdates.length !== 1 ? 's' : ''}</span>
               </div>
-            );
-          })
+              {sectionUpdates.map((update) => {
+                const def = HUB_CATEGORY_DEFS[update.category as keyof typeof HUB_CATEGORY_DEFS];
+                const Icon = def?.Icon || Tag;
+                const label = def?.label || formatCategoryLabel(update.category);
+                return (
+                  <div key={update.id} className="card hover:shadow-md transition-shadow">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center mb-2">
+                          <Icon className="h-5 w-5 text-primary-600 mr-2" />
+                          <span className="text-sm font-medium text-primary-600">
+                            {label}
+                          </span>
+                          {update.section && (
+                            <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-50 text-primary-700 border border-primary-200">
+                              {update.section}
+                            </span>
+                          )}
+                          <span className="text-sm text-gray-500 ml-2">
+                            • {format(new Date(update.createdAt), 'MMM d, yyyy')}
+                          </span>
+                        </div>
+                        
+                        <h3 className="text-lg font-semibold mb-2">{update.title}</h3>
+                        
+                        {update.content && (
+                          <p className="text-gray-600 mb-3 whitespace-pre-wrap">{update.content}</p>
+                        )}
+                        
+                        {update.externalLink && (
+                          <a
+                            href={update.externalLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center text-primary-600 hover:text-primary-700 font-medium"
+                          >
+                            <LinkIcon className="h-4 w-4 mr-1" />
+                            View Link
+                          </a>
+                        )}
+                        
+                        {update.createdBy && (
+                          <p className="text-xs text-gray-500 mt-3">
+                            Posted by {update.createdBy.name}
+                          </p>
+                        )}
+                      </div>
+                      
+                      {user?.role === 'admin' && (
+                        <div className="flex items-center space-x-2 ml-4">
+                          <button
+                            onClick={() => handleEdit(update)}
+                            className="p-2 text-gray-500 hover:text-primary-600 transition-colors"
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(update.id)}
+                            className="p-2 text-gray-500 hover:text-red-600 transition-colors"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ))
         )}
       </div>
     </div>
