@@ -55,6 +55,32 @@ export async function ensureCorrectSchema() {
       console.log('section column added to team_updates');
     }
 
+    // Ensure team_updates.file_url exists
+    const checkFileUrl = await pool.query(`
+      SELECT column_name
+      FROM information_schema.columns
+      WHERE table_name = 'team_updates' AND column_name = 'file_url'
+    `);
+
+    if (checkFileUrl.rows.length === 0) {
+      console.log('Adding file_url column to team_updates...');
+      await pool.query("ALTER TABLE team_updates ADD COLUMN file_url TEXT");
+      console.log('file_url column added to team_updates');
+    }
+
+    // Ensure team_updates.external_link exists
+    const checkExternalLink = await pool.query(`
+      SELECT column_name
+      FROM information_schema.columns
+      WHERE table_name = 'team_updates' AND column_name = 'external_link'
+    `);
+
+    if (checkExternalLink.rows.length === 0) {
+      console.log('Adding external_link column to team_updates...');
+      await pool.query("ALTER TABLE team_updates ADD COLUMN external_link TEXT");
+      console.log('external_link column added to team_updates');
+    }
+
     // Ensure activity tables exist (activity_event, activity_daily, activity_weekly)
     const checkActivityEvent = await pool.query(`
       SELECT to_regclass('public.activity_event') as exists;
