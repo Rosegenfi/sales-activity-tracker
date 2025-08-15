@@ -42,9 +42,19 @@ app.use('/api/team-updates', teamUpdateRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/activity', activityRoutes);
 
-// Health check endpoint
+// Health check endpoint - moved before database connection
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
+});
+
+// Readiness check endpoint
+app.get('/api/ready', async (req, res) => {
+  try {
+    await pool.query('SELECT 1');
+    res.json({ status: 'ready', database: 'connected' });
+  } catch (error) {
+    res.status(503).json({ status: 'not ready', database: 'disconnected' });
+  }
 });
 
 // Error handling middleware
@@ -94,7 +104,16 @@ async function runMigrationsIfNeeded() {
 // Start server
 const startServer = async () => {
   try {
+    console.log('Starting server...');
+    console.log('Environment:', {
+      NODE_ENV: process.env.NODE_ENV,
+      PORT: process.env.PORT,
+      DB_HOST: process.env.DB_HOST ? 'Set' : 'Not set',
+      DATABASE_URL: process.env.DATABASE_URL ? 'Set' : 'Not set'
+    });
+    
     // Test database connection
+    console.log('Testing database connection...');
     await pool.query('SELECT NOW()');
     console.log('Database connected successfully');
     
@@ -107,8 +126,14 @@ const startServer = async () => {
     // Check database status
     await checkDatabaseStatus();
     
-    app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
+    const server = app.listen(PORT, '0.0.0.0', () => {
+      console.log(`Server is running on http://0.0.0.0:${PORT}`);
+      console.log('Health check available at /api/health');
+    });
+    
+    server.on('error', (error) => {
+      console.error('Server error:', error);
+      process.exit(1);
     });
   } catch (error) {
     console.error('Failed to start server:', error);
