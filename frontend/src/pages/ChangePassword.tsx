@@ -143,8 +143,8 @@ export default function ChangePassword() {
         </form>
 
         {user?.email === 'admin@salestracker.com' && (
-          <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
-            <p className="text-sm text-blue-700">
+          <div className="mt-6 p-4 bg-primary-50 border border-primary-200 rounded-md">
+            <p className="text-sm text-primary-700">
               <strong>Note:</strong> As the default admin user, it's highly recommended to change your password from the default one.
             </p>
           </div>

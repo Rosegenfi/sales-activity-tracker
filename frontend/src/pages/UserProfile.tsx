@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { userApi, commitmentApi, resultApi, goalApi } from '@/services/api';
+import { userApi, commitmentApi, resultApi } from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
-import { User as UserIcon, Phone, Mail, Users, Target } from 'lucide-react';
+import { User as UserIcon, Phone, Mail, Users } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { format, startOfWeek, addDays } from 'date-fns';
-import type { User, WeeklyCommitment, WeeklyResult, DailyGoal } from '@/types';
+import { format, startOfWeek } from 'date-fns';
+import type { User, WeeklyCommitment, WeeklyResult } from '@/types';
 
 interface WeekData {
   weekStart: string;
@@ -19,7 +19,6 @@ const UserProfile = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [weekData, setWeekData] = useState<WeekData[]>([]);
-  const [currentWeekGoals, setCurrentWeekGoals] = useState<DailyGoal[]>([]);
   const [loading, setLoading] = useState(true);
 
   const isOwnProfile = currentUser?.id === parseInt(userId || '0');
@@ -89,11 +88,6 @@ const UserProfile = () => {
 
           const fetchedWeekData = await Promise.all(weekDataPromises);
           setWeekData(fetchedWeekData.filter(w => w.commitments || w.results));
-
-          // Fetch current week goals for the user
-          const currentWeekStart = format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd');
-          const goalsRes = await goalApi.getUserWeekGoals(targetUserId, currentWeekStart);
-          setCurrentWeekGoals(goalsRes.data);
         } else {
           // Own profile - use existing data
           const combinedData: WeekData[] = [];
@@ -111,10 +105,6 @@ const UserProfile = () => {
           });
 
           setWeekData(combinedData);
-
-          // Fetch current week goals
-          const goalsRes = await goalApi.getCurrentWeekGoals();
-          setCurrentWeekGoals(goalsRes.data);
         }
       }
     } catch (error) {
@@ -170,12 +160,6 @@ const UserProfile = () => {
     emails: totalStats.weeks ? Math.round(totalStats.emails / totalStats.weeks) : 0,
     meetings: totalStats.weeks ? Math.round(totalStats.meetings / totalStats.weeks) : 0
   };
-
-  // Current week progress
-  const currentWeekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
-  const daysCompleted = currentWeekGoals.filter(g => 
-    g.callsAchieved || g.emailsAchieved || g.meetingsAchieved
-  ).length;
 
   return (
     <div className="space-y-6">
@@ -234,16 +218,6 @@ const UserProfile = () => {
             <Users className="h-8 w-8 text-primary-600" />
           </div>
         </div>
-        <div className="stat-card">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">This Week Progress</p>
-              <p className="text-2xl font-bold">{daysCompleted}/5</p>
-              <p className="text-xs text-gray-500">Days completed</p>
-            </div>
-            <Target className="h-8 w-8 text-primary-600" />
-          </div>
-        </div>
       </div>
 
       {/* Performance Charts */}
@@ -256,7 +230,7 @@ const UserProfile = () => {
               <XAxis dataKey="week" />
               <YAxis />
               <Tooltip />
-              <Line type="monotone" dataKey="calls" stroke="#3b82f6" name="Calls" strokeWidth={2} />
+              <Line type="monotone" dataKey="calls" stroke="#6b8f7e" name="Calls" strokeWidth={2} />
               <Line type="monotone" dataKey="emails" stroke="#10b981" name="Emails" strokeWidth={2} />
               <Line type="monotone" dataKey="meetings" stroke="#f59e0b" name="Meetings" strokeWidth={2} />
             </LineChart>
@@ -271,7 +245,7 @@ const UserProfile = () => {
               <XAxis dataKey="week" />
               <YAxis />
               <Tooltip />
-              <Bar dataKey="achievement" fill="#3b82f6" name="Achievement %" />
+              <Bar dataKey="achievement" fill="#6b8f7e" name="Achievement %" />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -360,68 +334,6 @@ const UserProfile = () => {
           </table>
         </div>
       </div>
-
-      {/* Current Week Goals */}
-      {isOwnProfile && currentWeekGoals.length > 0 && (
-        <div className="card">
-          <h2 className="text-lg font-semibold mb-4">This Week's Daily Goals</h2>
-          <div className="grid grid-cols-5 gap-2">
-            {[0, 1, 2, 3, 4].map(dayOffset => {
-              const date = addDays(currentWeekStart, dayOffset);
-              const goal = currentWeekGoals.find(g => g.date === format(date, 'yyyy-MM-dd'));
-              
-              if (!goal) {
-                return (
-                  <div key={dayOffset} className="text-center p-3 bg-gray-50 rounded-lg">
-                    <p className="text-sm font-medium text-gray-600">
-                      {format(date, 'EEE')}
-                    </p>
-                    <p className="text-xs text-gray-400 mt-1">No goals set</p>
-                  </div>
-                );
-              }
-
-              const totalAchieved = (goal.callsAchieved ? 1 : 0) + 
-                                   (goal.emailsAchieved ? 1 : 0) + 
-                                   (goal.meetingsAchieved ? 1 : 0);
-
-              return (
-                <div key={dayOffset} className="text-center p-3 bg-gray-50 rounded-lg">
-                  <p className="text-sm font-medium text-gray-700">
-                    {format(date, 'EEE')}
-                  </p>
-                  <div className="mt-2 space-y-1">
-                    <div className="flex items-center justify-center">
-                      <Phone className={`h-3 w-3 mr-1 ${goal.callsAchieved ? 'text-green-600' : 'text-gray-400'}`} />
-                      <span className="text-xs">{goal.callsGoal}</span>
-                    </div>
-                    <div className="flex items-center justify-center">
-                      <Mail className={`h-3 w-3 mr-1 ${goal.emailsAchieved ? 'text-green-600' : 'text-gray-400'}`} />
-                      <span className="text-xs">{goal.emailsGoal}</span>
-                    </div>
-                    <div className="flex items-center justify-center">
-                      <Users className={`h-3 w-3 mr-1 ${goal.meetingsAchieved ? 'text-green-600' : 'text-gray-400'}`} />
-                      <span className="text-xs">{goal.meetingsGoal}</span>
-                    </div>
-                  </div>
-                  <div className="mt-2">
-                    <div className={`h-1 w-full rounded-full bg-gray-200 overflow-hidden`}>
-                      <div 
-                        className={`h-full transition-all ${
-                          totalAchieved === 3 ? 'bg-green-500' :
-                          totalAchieved > 0 ? 'bg-yellow-500' :
-                          'bg-gray-300'
-                        }`}
-                        style={{ width: `${(totalAchieved / 3) * 100}%` }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
     </div>
   );
 };

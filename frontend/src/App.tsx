@@ -9,7 +9,6 @@ import Login from '@/pages/Login';
 import Dashboard from '@/pages/Dashboard';
 import Leaderboard from '@/pages/Leaderboard';
 import WeeklyCommits from '@/pages/WeeklyCommits';
-import DailyGoals from '@/pages/DailyGoals';
 import UserProfile from '@/pages/UserProfile';
 import TeamUpdates from '@/pages/TeamUpdates';
 import UserManagement from '@/pages/UserManagement';
@@ -55,7 +54,6 @@ function App() {
             <Route index element={<Dashboard />} />
             <Route path="leaderboard" element={<Leaderboard />} />
             <Route path="weekly-commits" element={<WeeklyCommits />} />
-            <Route path="daily-goals" element={<DailyGoals />} />
             <Route path="team-updates" element={<TeamUpdates />} />
             <Route path="profile/:userId" element={<UserProfile />} />
             <Route path="change-password" element={<ChangePassword />} />

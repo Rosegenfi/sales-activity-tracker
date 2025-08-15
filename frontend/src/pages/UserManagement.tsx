@@ -138,7 +138,7 @@ const UserManagement = () => {
               <p className="text-sm text-gray-600">Account Executives</p>
               <p className="text-2xl font-bold">{aes.length}</p>
             </div>
-            <Users className="h-8 w-8 text-blue-600" />
+            <Users className="h-8 w-8 text-primary-600" />
           </div>
         </div>
         <div className="stat-card">
@@ -274,7 +274,7 @@ const UserManagement = () => {
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                       user.role === 'admin' 
                         ? 'bg-purple-100 text-purple-800' 
-                        : 'bg-blue-100 text-blue-800'
+                        : 'bg-primary-100 text-primary-800'
                     }`}>
                       {user.role === 'admin' ? (
                         <>

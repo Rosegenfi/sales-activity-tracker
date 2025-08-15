@@ -76,7 +76,7 @@ const WeeklyCommits = () => {
             <YAxis />
             <Tooltip />
             <Legend />
-            <Line type="monotone" dataKey="callsActual" stroke="#3b82f6" name="Calls" strokeWidth={2} />
+            <Line type="monotone" dataKey="callsActual" stroke="#6b8f7e" name="Calls" strokeWidth={2} />
             <Line type="monotone" dataKey="emailsActual" stroke="#10b981" name="Emails" strokeWidth={2} />
             <Line type="monotone" dataKey="meetingsActual" stroke="#f59e0b" name="Meetings" strokeWidth={2} />
           </LineChart>
@@ -84,7 +84,7 @@ const WeeklyCommits = () => {
       );
     } else {
       const dataKey = view === 'calls' ? 'calls' : view === 'emails' ? 'emails' : 'meetings';
-      const color = view === 'calls' ? '#3b82f6' : view === 'emails' ? '#10b981' : '#f59e0b';
+      const color = view === 'calls' ? '#6b8f7e' : view === 'emails' ? '#10b981' : '#f59e0b';
       
       return (
         <ResponsiveContainer width="100%" height={300}>

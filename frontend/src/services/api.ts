@@ -5,7 +5,6 @@ import type {
   User, 
   WeeklyCommitment, 
   WeeklyResult, 
-  DailyGoal, 
   TeamUpdate, 
   LeaderboardData 
 } from '@/types';
@@ -95,28 +94,6 @@ export const resultApi = {
     api.get<WeeklyResult[]>(`/results/user/${userId}/history`, { params: { limit } }),
 };
 
-// Goal endpoints
-export const goalApi = {
-  getGoalByDate: (date: string) => api.get<DailyGoal | null>(`/goals/date/${date}`),
-  createOrUpdateGoal: (data: {
-    date: string;
-    callsGoal: number;
-    emailsGoal: number;
-    meetingsGoal: number;
-  }) => api.post<DailyGoal>('/goals', data),
-  updateAchievement: (data: {
-    date: string;
-    callsAchieved?: boolean;
-    emailsAchieved?: boolean;
-    meetingsAchieved?: boolean;
-  }) => api.patch<DailyGoal>('/goals/achievement', data),
-  getCurrentWeekGoals: () => api.get<DailyGoal[]>('/goals/week/current'),
-  getUserGoalByDate: (userId: number, date: string) =>
-    api.get<DailyGoal | null>(`/goals/user/${userId}/date/${date}`),
-  getUserWeekGoals: (userId: number, weekStart: string) =>
-    api.get<DailyGoal[]>(`/goals/user/${userId}/week/${weekStart}`),
-};
-
 // Team update endpoints
 export const teamUpdateApi = {
   getAll: (category?: string) =>
@@ -151,7 +128,6 @@ export const activityApi = {
     api.post('/activity/events', data),
   getMySummary: () => api.get('/activity/me/summary'),
   getAdminOverview: () => api.get('/activity/admin/overview'),
-  getAdminDaily: (date?: string) => api.get('/activity/admin/daily', { params: { date } }),
   getAdminWeekly: (weekStart?: string) => api.get('/activity/admin/weekly', { params: { weekStart } }),
 };
 

@@ -4,7 +4,6 @@ import {
   LayoutDashboard,
   Trophy,
   Calendar,
-  Target,
   Users,
   LogOut,
   Menu,
@@ -27,7 +26,6 @@ const Layout = () => {
     { name: 'Dashboard', href: '/', icon: LayoutDashboard },
     { name: 'Leaderboard', href: '/leaderboard', icon: Trophy },
     { name: 'Weekly Commits', href: '/weekly-commits', icon: Calendar },
-    { name: 'Daily Goals', href: '/daily-goals', icon: Target },
     { name: 'AE Hub', href: '/team-updates', icon: BookOpen },
   ];
 

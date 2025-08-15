@@ -43,17 +43,6 @@ export interface WeeklyResult {
   };
 }
 
-export interface DailyGoal {
-  id?: number;
-  date: string;
-  callsGoal: number;
-  emailsGoal: number;
-  meetingsGoal: number;
-  callsAchieved: boolean;
-  emailsAchieved: boolean;
-  meetingsAchieved: boolean;
-}
-
 export interface TeamUpdate {
   id: number;
   title: string;

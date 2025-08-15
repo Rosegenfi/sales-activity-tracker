@@ -17,7 +17,7 @@ import toast from 'react-hot-toast';
 
 const activityTypes: Array<{ key: 'call'|'email'|'meeting'|'social'; label: string; icon: any; color: string }> = [
   { key: 'call', label: 'Calls', icon: Phone, color: 'text-primary-600' },
-  { key: 'email', label: 'Emails', icon: Mail, color: 'text-blue-600' },
+  { key: 'email', label: 'Emails', icon: Mail, color: 'text-primary-600' },
   { key: 'meeting', label: 'Meetings', icon: Users, color: 'text-emerald-600' },
   { key: 'social', label: 'Social', icon: Sparkles, color: 'text-amber-600' },
 ];
@@ -25,7 +25,6 @@ const activityTypes: Array<{ key: 'call'|'email'|'meeting'|'social'; label: stri
 const Dashboard = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [today, setToday] = useState<Record<string, number>>({});
   const [week, setWeek] = useState<Record<string, number>>({});
   const [wow, setWoW] = useState<Record<string, { last: number; prior: number; delta: number; pct: number|null }>>({});
   const [loggingType, setLoggingType] = useState<null | 'call'|'email'|'meeting'|'social'|'other'>(null);
@@ -38,7 +37,6 @@ const Dashboard = () => {
   const loadSummary = async () => {
     try {
       const res = await activityApi.getMySummary();
-      setToday(res.data.today || {});
       setWeek(res.data.week || {});
       setWoW(res.data.wow || {});
     } catch (error) {
@@ -83,15 +81,13 @@ const Dashboard = () => {
             <button onClick={() => setLoggingType('call')} className="btn-primary inline-flex items-center">
               <PlusCircle className="h-4 w-4 mr-2" /> Log activity
             </button>
-            <Link to="/daily-goals" className="btn-secondary">Plan my day</Link>
           </div>
         </div>
       </div>
 
-      {/* Quick KPIs */}
+      {/* Weekly KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {activityTypes.map(({ key, label, icon: Icon, color }) => {
-          const t = today[key] || 0;
           const w = week[key] || 0;
           const wRow = wow[key];
           const pct = wRow?.pct;
@@ -101,15 +97,11 @@ const Dashboard = () => {
             <div key={key} className="stat-card">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">{label} today</p>
-                  <p className="text-2xl font-bold">{t}</p>
+                  <p className="text-sm text-gray-600">Week-to-date {label}</p>
+                  <p className="text-2xl font-bold">{w}</p>
                   <p className={`text-xs mt-1 ${trendColor}`}>WoW {trendPrefix}{pct == null ? '—' : `${Math.abs(pct)}%`}</p>
                 </div>
                 <Icon className={`h-8 w-8 ${color}`} />
-              </div>
-              <div className="mt-3 flex items-center justify-between text-sm text-gray-600">
-                <span>This week</span>
-                <span className="font-semibold text-gray-900">{w}</span>
               </div>
             </div>
           );
@@ -166,15 +158,6 @@ const Dashboard = () => {
 
       {/* Quick Links */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Link to="/daily-goals" className="card hover:shadow-md transition-shadow">
-          <div className="flex items-center">
-            <Calendar className="h-10 w-10 text-primary-600 mr-3" />
-            <div>
-              <h3 className="font-semibold">Daily Goals</h3>
-              <p className="text-sm text-gray-600">Set today's targets</p>
-            </div>
-          </div>
-        </Link>
         <Link to="/leaderboard" className="card hover:shadow-md transition-shadow">
           <div className="flex items-center">
             <TrendingUp className="h-10 w-10 text-yellow-600 mr-3" />
@@ -195,7 +178,7 @@ const Dashboard = () => {
         </Link>
         <Link to="/team-updates" className="card hover:shadow-md transition-shadow">
           <div className="flex items-center">
-            <Sparkles className="h-10 w-10 text-blue-600 mr-3" />
+            <Sparkles className="h-10 w-10 text-primary-600 mr-3" />
             <div>
               <h3 className="font-semibold">AE Hub</h3>
               <p className="text-sm text-gray-600">Docs & resources</p>

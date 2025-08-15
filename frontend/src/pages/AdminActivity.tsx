@@ -10,11 +10,7 @@ interface AdminRow {
   activities: Record<string, { thisWeek: number; lastWeek: number; wowPct: number|null }> | Record<string, number>;
 }
 
-type Mode = 'daily' | 'weekly';
-
 const AdminActivity = () => {
-  const [mode, setMode] = useState<Mode>('weekly');
-  const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [weekStart] = useState<string>(format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd'));
   const [rows, setRows] = useState<AdminRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -22,18 +18,13 @@ const AdminActivity = () => {
   useEffect(() => {
     fetchData();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, date, weekStart]);
+  }, [weekStart]);
 
   const fetchData = async () => {
     try {
       setLoading(true);
-      if (mode === 'daily') {
-        const res = await activityApi.getAdminDaily(date);
-        setRows(res.data.users);
-      } else {
-        const res = await activityApi.getAdminOverview();
-        setRows(res.data.users);
-      }
+      const res = await activityApi.getAdminOverview();
+      setRows(res.data.users);
     } finally {
       setLoading(false);
     }
@@ -45,17 +36,7 @@ const AdminActivity = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">Activity Overview</h1>
-        <div className="flex items-center gap-3">
-          <select value={mode} onChange={(e) => setMode(e.target.value as Mode)} className="input-field w-36">
-            <option value="daily">Daily</option>
-            <option value="weekly">Weekly (WoW)</option>
-          </select>
-          {mode === 'daily' ? (
-            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="input-field" />
-          ) : (
-            <div className="text-sm text-gray-600 flex items-center"><Calendar className="h-4 w-4 mr-2" /> Week of {format(new Date(weekStart), 'MMM d, yyyy')}</div>
-          )}
-        </div>
+        <div className="text-sm text-gray-600 flex items-center"><Calendar className="h-4 w-4 mr-2" /> Week of {format(new Date(weekStart), 'MMM d, yyyy')}</div>
       </div>
 
       <div className="card">
@@ -67,9 +48,7 @@ const AdminActivity = () => {
                 {allTypes.map(t => (
                   <th key={t} className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">{t}</th>
                 ))}
-                {mode === 'weekly' && (
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">WoW%</th>
-                )}
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">WoW%</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-100">
@@ -80,7 +59,7 @@ const AdminActivity = () => {
               ) : (
                 rows.map((row) => {
                   const activities: any = row.activities || {};
-                  const totals = allTypes.map(t => (mode === 'daily' ? (activities[t] || 0) : (activities[t]?.thisWeek || 0)));
+                  const totals = allTypes.map(t => (activities[t]?.thisWeek || 0));
                   const wowPcts = allTypes
                     .map(t => activities[t]?.wowPct)
                     .filter((v: number | null | undefined) => v !== null && v !== undefined) as number[];
@@ -101,15 +80,13 @@ const AdminActivity = () => {
                       {totals.map((v, idx) => (
                         <td key={idx} className="px-4 py-3 text-right text-sm text-gray-900 font-medium">{v}</td>
                       ))}
-                      {mode === 'weekly' && (
-                        <td className="px-4 py-3 text-right text-sm font-medium">
-                          {wowAvg === null ? '—' : (
-                            <span className={wowAvg >= 0 ? 'text-green-600' : 'text-amber-600'}>
-                              {wowAvg >= 0 ? '▲' : '▼'}{Math.abs(Number(wowAvg.toFixed(1)))}%
-                            </span>
-                          )}
-                        </td>
-                      )}
+                      <td className="px-4 py-3 text-right text-sm font-medium">
+                        {wowAvg === null ? '—' : (
+                          <span className={wowAvg >= 0 ? 'text-green-600' : 'text-amber-600'}>
+                            {wowAvg >= 0 ? '▲' : '▼'}{Math.abs(Number(wowAvg.toFixed(1)))}%
+                          </span>
+                        )}
+                      </td>
                     </tr>
                   );
                 })
