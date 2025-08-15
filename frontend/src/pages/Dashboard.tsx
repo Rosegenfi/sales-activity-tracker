@@ -101,9 +101,9 @@ const Dashboard = () => {
 
   const dailySplit = weeklyCommitment
     ? {
-        calls: Math.max(0, Math.round(weeklyCommitment.callsTarget / 5)),
-        emails: Math.max(0, Math.round(weeklyCommitment.emailsTarget / 5)),
-        meetings: Math.max(0, Math.round(weeklyCommitment.meetingsTarget / 5)),
+        calls: Math.max(0, Math.ceil(weeklyCommitment.callsTarget / 5)),
+        emails: Math.max(0, Math.ceil(weeklyCommitment.emailsTarget / 5)),
+        meetings: Math.max(0, Math.ceil(weeklyCommitment.meetingsTarget / 5)),
       }
     : null;
 
