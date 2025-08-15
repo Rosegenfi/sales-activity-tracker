@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { activityApi, leaderboardApi } from '@/services/api';
 import { format, startOfWeek } from 'date-fns';
 import { Calendar } from 'lucide-react';
@@ -48,7 +48,8 @@ const AdminActivity = () => {
   const fetchHistory = async () => {
     try {
       setLoadingPerf(true);
-      const res = await leaderboardApi.getHistory(1);
+      // Fetch last 8 weeks to compute fallback targets if last week is missing
+      const res = await leaderboardApi.getHistory(8);
       setHistory(res.data as HistoryWeek[]);
     } finally {
       setLoadingPerf(false);
@@ -58,6 +59,23 @@ const AdminActivity = () => {
   const allTypes = ['call','email','meeting','social'];
 
   const lastWeek = history[0];
+
+  // Build per-user per-metric fallback targets from prior weeks (excluding last week)
+  const fallbackTargetsByUser = useMemo(() => {
+    const map = new Map<number, { calls?: number; emails?: number; meetings?: number }>();
+    // Iterate over older weeks after the first (lastWeek)
+    for (let i = 1; i < history.length; i++) {
+      const wk = history[i];
+      wk.aes.forEach(ae => {
+        const current = map.get(ae.id) || {};
+        if (!current.calls && ae.targets.calls && ae.targets.calls > 0) current.calls = ae.targets.calls;
+        if (!current.emails && ae.targets.emails && ae.targets.emails > 0) current.emails = ae.targets.emails;
+        if (!current.meetings && ae.targets.meetings && ae.targets.meetings > 0) current.meetings = ae.targets.meetings;
+        map.set(ae.id, current);
+      });
+    }
+    return map;
+  }, [history]);
 
   const pct = (actual: number, target: number) => {
     if (!target || target <= 0) return 0;
@@ -167,7 +185,14 @@ const AdminActivity = () => {
                 lastWeek.aes.map((ae) => {
                   const r = ae.results;
                   const t = ae.targets;
-                  const overall = overallPct(r, t);
+                  const fb = fallbackTargetsByUser.get(ae.id) || {};
+                  // Use last week's targets if present, otherwise fall back to prior week's non-zero targets per metric
+                  const effTargets = {
+                    calls: t.calls && t.calls > 0 ? t.calls : (fb.calls || 0),
+                    emails: t.emails && t.emails > 0 ? t.emails : (fb.emails || 0),
+                    meetings: t.meetings && t.meetings > 0 ? t.meetings : (fb.meetings || 0),
+                  };
+                  const overall = overallPct(r, effTargets);
                   return (
                     <tr key={ae.id} className="hover:bg-gray-50">
                       <td className="px-4 py-3 whitespace-nowrap">
@@ -179,16 +204,16 @@ const AdminActivity = () => {
                         </div>
                       </td>
                       <td className="px-4 py-3 text-center">
-                        <div className="text-sm"><span className="font-semibold">{r.calls}</span><span className="text-gray-500">/{t.calls || 0}</span></div>
-                        <div className="text-xs text-gray-500">{pct(r.calls, t.calls)}%</div>
+                        <div className="text-sm"><span className="font-semibold">{r.calls}</span><span className="text-gray-500">/{effTargets.calls}</span></div>
+                        <div className="text-xs text-gray-500">{pct(r.calls, effTargets.calls)}%</div>
                       </td>
                       <td className="px-4 py-3 text-center">
-                        <div className="text-sm"><span className="font-semibold">{r.emails}</span><span className="text-gray-500">/{t.emails || 0}</span></div>
-                        <div className="text-xs text-gray-500">{pct(r.emails, t.emails)}%</div>
+                        <div className="text-sm"><span className="font-semibold">{r.emails}</span><span className="text-gray-500">/{effTargets.emails}</span></div>
+                        <div className="text-xs text-gray-500">{pct(r.emails, effTargets.emails)}%</div>
                       </td>
                       <td className="px-4 py-3 text-center">
-                        <div className="text-sm"><span className="font-semibold">{r.meetings}</span><span className="text-gray-500">/{t.meetings || 0}</span></div>
-                        <div className="text-xs text-gray-500">{pct(r.meetings, t.meetings)}%</div>
+                        <div className="text-sm"><span className="font-semibold">{r.meetings}</span><span className="text-gray-500">/{effTargets.meetings}</span></div>
+                        <div className="text-xs text-gray-500">{pct(r.meetings, effTargets.meetings)}%</div>
                       </td>
                       <td className="px-4 py-3 text-center">{chip(overall)}</td>
                     </tr>
