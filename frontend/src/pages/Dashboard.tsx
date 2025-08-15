@@ -102,12 +102,9 @@ const Dashboard = () => {
   return (
     <div className="space-y-6">
       {/* Hero */}
-      <div className="relative overflow-hidden rounded-xl p-6 text-white bg-gradient-to-r from-primary-500 via-primary-600 to-primary-700">
-        <div className="absolute inset-0 opacity-30" style={{ background: 'radial-gradient(1200px 600px at -10% 0%, rgba(255,255,255,0.25), transparent 60%), radial-gradient(800px 400px at 120% 20%, rgba(255,255,255,0.2), transparent 60%)' }} />
-        <div className="relative">
-          <h1 className="text-2xl font-bold">Good morning, {user?.firstName}</h1>
-          <p className="mt-2 text-primary-100">{todayStr}</p>
-        </div>
+      <div className="rounded-xl p-6 text-white bg-primary-600">
+        <h1 className="text-2xl font-bold">Good morning, {user?.firstName}</h1>
+        <p className="mt-2 text-primary-100">{todayStr}</p>
       </div>
 
       {/* Last Week KPIs */}

@@ -164,9 +164,8 @@ const UserProfile = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="relative overflow-hidden rounded-xl p-6 text-white bg-gradient-to-r from-primary-500 via-primary-600 to-primary-700">
-        <div className="absolute inset-0 opacity-30" style={{ background: 'radial-gradient(1200px 600px at -10% 0%, rgba(255,255,255,0.25), transparent 60%), radial-gradient(800px 400px at 120% 20%, rgba(255,255,255,0.2), transparent 60%)' }} />
-        <div className="relative flex items-center justify-between">
+      <div className="rounded-xl p-6 text-white bg-primary-600">
+        <div className="flex items-center justify-between">
           <div className="flex items-center">
             <div className="h-16 w-16 rounded-full bg-white/20 flex items-center justify-center text-2xl font-bold mr-4">
               {user.firstName[0]}{user.lastName[0]}

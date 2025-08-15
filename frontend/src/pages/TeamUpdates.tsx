@@ -166,15 +166,14 @@ const TeamUpdates = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-r from-primary-600 to-primary-700 rounded-lg p-6 text-white">
+      <div className="rounded-lg p-6 text-white bg-primary-600">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold flex items-center">
-              <MessageSquare className="h-8 w-8 mr-3" />
-              AE Hub
+              Team Updates
             </h1>
             <p className="mt-2 text-primary-100">
-              Documents, templates, and resources for Account Executives
+              Playbooks, documents, and resources
             </p>
           </div>
           {user?.role === 'admin' && (
