@@ -170,7 +170,7 @@ const TeamUpdates = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold flex items-center">
-              Team Updates
+              AE Hub
             </h1>
             <p className="mt-2 text-primary-100">
               Playbooks, documents, and resources
