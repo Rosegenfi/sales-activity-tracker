@@ -25,9 +25,22 @@ interface LeaderboardSummary {
   };
 }
 
+interface HistoryWeek {
+  weekStartDate: string;
+  aes: Array<{
+    id: number;
+    firstName: string;
+    lastName: string;
+    fullName: string;
+    results: { calls: number; emails: number; meetings: number };
+    targets: { calls: number; emails: number; meetings: number };
+  }>;
+}
+
 const Leaderboard = () => {
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardData | null>(null);
   const [summary, setSummary] = useState<LeaderboardSummary | null>(null);
+  const [history, setHistory] = useState<HistoryWeek[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -36,12 +49,14 @@ const Leaderboard = () => {
 
   const fetchLeaderboard = async () => {
     try {
-      const [lbRes, sumRes] = await Promise.all([
+      const [lbRes, sumRes, histRes] = await Promise.all([
         leaderboardApi.getLeaderboard(),
         leaderboardApi.getSummary(),
+        leaderboardApi.getHistory(2),
       ]);
       setLeaderboardData(lbRes.data);
       setSummary(sumRes.data as LeaderboardSummary);
+      setHistory(histRes.data as HistoryWeek[]);
     } catch (error) {
       console.error('Error fetching leaderboard:', error);
     } finally {
@@ -72,10 +87,9 @@ const Leaderboard = () => {
       .map(e => ({ id: e.id, fullName: e.fullName, emailsActual: e.emailsActual }));
   }, [leaderboardData]);
 
-  const topConverters = useMemo(() => {
+  const topCallConverters = useMemo(() => {
     if (!leaderboardData) return [] as Array<{ id: number; fullName: string; rate: number; callsActual: number; meetingsActual: number }>;
     return leaderboardData.leaderboard
-      .filter(e => (e.callsActual || 0) >= 20) // ignore very low volume
       .map(e => ({
         id: e.id,
         fullName: e.fullName,
@@ -86,6 +100,41 @@ const Leaderboard = () => {
       .sort((a, b) => b.rate - a.rate)
       .slice(0, 3);
   }, [leaderboardData]);
+
+  const topEmailConverters = useMemo(() => {
+    if (!leaderboardData) return [] as Array<{ id: number; fullName: string; rate: number; emailsActual: number; meetingsActual: number }>;
+    return leaderboardData.leaderboard
+      .map(e => ({
+        id: e.id,
+        fullName: e.fullName,
+        emailsActual: e.emailsActual,
+        meetingsActual: e.meetingsActual,
+        rate: e.emailsActual > 0 ? (e.meetingsActual / e.emailsActual) : 0,
+      }))
+      .sort((a, b) => b.rate - a.rate)
+      .slice(0, 3);
+  }, [leaderboardData]);
+
+  const wowByUser = useMemo(() => {
+    const map: Record<number, { calls: number|null; emails: number|null; meetings: number|null }> = {};
+    if (!history || history.length < 2) return map;
+    const last = history[0];
+    const prior = history[1];
+    const lastMap = new Map(last.aes.map(a => [a.id, a.results]));
+    const priorMap = new Map(prior.aes.map(a => [a.id, a.results]));
+    const ids = new Set<number>([...lastMap.keys(), ...priorMap.keys()]);
+    ids.forEach(id => {
+      const l = lastMap.get(id) || { calls: 0, emails: 0, meetings: 0 };
+      const p = priorMap.get(id) || { calls: 0, emails: 0, meetings: 0 };
+      const pct = (lv: number, pv: number) => (pv === 0 ? null : Math.round(((lv - pv) / pv) * 1000) / 10);
+      map[id] = {
+        calls: pct(l.calls, p.calls),
+        emails: pct(l.emails, p.emails),
+        meetings: pct(l.meetings, p.meetings),
+      };
+    });
+    return map;
+  }, [history]);
 
   if (loading) {
     return (
@@ -115,6 +164,16 @@ const Leaderboard = () => {
     if (index === 1) return { icon: '🥈', color: 'text-gray-400' };
     if (index === 2) return { icon: '🥉', color: 'text-orange-600' };
     return null;
+  };
+
+  const wowCell = (val: number|null|undefined) => {
+    if (val === null || val === undefined) return <span className="text-gray-400">—</span>;
+    const up = val >= 0;
+    return (
+      <span className={up ? 'text-green-600' : 'text-amber-600'}>
+        {up ? '▲' : '▼'}{Math.abs(val)}%
+      </span>
+    );
   };
 
   return (
@@ -261,14 +320,14 @@ const Leaderboard = () => {
 
       {/* Additional Highlights */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Top Conversion */}
+        {/* Top Conversion (Calls → Meetings) */}
         <div className="card">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold">Top Conversion (Meetings per 100 Calls)</h2>
+            <h2 className="text-lg font-semibold">Top Conversion (Calls → Meetings)</h2>
             <TrendingUp className="h-6 w-6 text-primary-600" />
           </div>
           <div className="space-y-3">
-            {topConverters.map((p, index) => (
+            {topCallConverters.map((p, index) => (
               <div key={p.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div className="flex items-center">
                   <span className="text-2xl mr-3">{getRankBadge(index)?.icon}</span>
@@ -282,8 +341,35 @@ const Leaderboard = () => {
                 </div>
               </div>
             ))}
-            {topConverters.length === 0 && (
-              <p className="text-sm text-gray-500">Not enough call volume to calculate conversion</p>
+            {topCallConverters.length === 0 && (
+              <p className="text-sm text-gray-500">No activity yet</p>
+            )}
+          </div>
+        </div>
+
+        {/* Top Conversion (Emails → Meetings) */}
+        <div className="card">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold">Top Conversion (Emails → Meetings)</h2>
+            <TrendingUp className="h-6 w-6 text-primary-600" />
+          </div>
+          <div className="space-y-3">
+            {topEmailConverters.map((p, index) => (
+              <div key={p.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center">
+                  <span className="text-2xl mr-3">{getRankBadge(index)?.icon}</span>
+                  <Link to={`/profile/${p.id}`} className="font-medium hover:text-primary-600 transition-colors">
+                    {p.fullName}
+                  </Link>
+                </div>
+                <div className="text-right">
+                  <div className="font-bold text-primary-600">{Math.round(p.rate * 100)}</div>
+                  <div className="text-xs text-gray-500">{p.meetingsActual} mtgs / {p.emailsActual} emails</div>
+                </div>
+              </div>
+            ))}
+            {topEmailConverters.length === 0 && (
+              <p className="text-sm text-gray-500">No activity yet</p>
             )}
           </div>
         </div>
@@ -329,6 +415,7 @@ const Leaderboard = () => {
             <tbody>
               {leaderboardData.leaderboard.map((entry, index) => {
                 const badge = getRankBadge(index);
+                const wow = wowByUser[entry.id] || { calls: null, emails: null, meetings: null };
                 return (
                   <tr key={entry.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                     <td className="py-3 px-4">
@@ -358,6 +445,7 @@ const Leaderboard = () => {
                           <span className="text-gray-500">/{entry.callsTarget}</span>
                         )}
                       </div>
+                      <div className="text-xs">{wowCell(wow.calls)}</div>
                     </td>
                     <td className="py-3 px-4 text-center">
                       <div className="text-sm">
@@ -366,6 +454,7 @@ const Leaderboard = () => {
                           <span className="text-gray-500">/{entry.emailsTarget}</span>
                         )}
                       </div>
+                      <div className="text-xs">{wowCell(wow.emails)}</div>
                     </td>
                     <td className="py-3 px-4 text-center">
                       <div className="text-sm">
@@ -374,6 +463,7 @@ const Leaderboard = () => {
                           <span className="text-gray-500">/{entry.meetingsTarget}</span>
                         )}
                       </div>
+                      <div className="text-xs">{wowCell(wow.meetings)}</div>
                     </td>
                     <td className="py-3 px-4 text-center">
                       {entry.hasData ? (
