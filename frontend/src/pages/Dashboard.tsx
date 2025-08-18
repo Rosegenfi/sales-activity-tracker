@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { activityApi, commitmentApi } from '@/services/api';
+import { activityApi, commitmentApi, resultApi } from '@/services/api';
 import { format } from 'date-fns';
 import {
   Calendar,
@@ -26,10 +26,14 @@ const Dashboard = () => {
   const [wow, setWoW] = useState<Record<string, { last: number; prior: number; delta: number; pct: number|null }>>({});
   const [weeklyCommitment, setWeeklyCommitment] = useState<{ callsTarget: number; emailsTarget: number; meetingsTarget: number } | null>(null);
   const [creatingCommitment, setCreatingCommitment] = useState(false);
+  const [editingCommitment, setEditingCommitment] = useState(false);
+  const [lastWeekActivity, setLastWeekActivity] = useState<{ callsActual: number; emailsActual: number; meetingsActual: number }>({ callsActual: 0, emailsActual: 0, meetingsActual: 0 });
+  const [savingLastWeek, setSavingLastWeek] = useState(false);
 
   useEffect(() => {
     loadSummary();
     loadCommitment();
+    loadPreviousResult();
   }, []);
 
   const loadCommitment = async () => {
@@ -61,6 +65,21 @@ const Dashboard = () => {
     }
   };
 
+  const loadPreviousResult = async () => {
+    try {
+      const res = await resultApi.getPreviousResult();
+      if (res.data) {
+        setLastWeekActivity({
+          callsActual: res.data.callsActual,
+          emailsActual: res.data.emailsActual,
+          meetingsActual: res.data.meetingsActual,
+        });
+      }
+    } catch (e) {
+      // ignore
+    }
+  };
+
   const handleCommitmentSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
@@ -74,10 +93,33 @@ const Dashboard = () => {
       await commitmentApi.createOrUpdateCommitment(payload);
       toast.success('Weekly goals saved');
       setWeeklyCommitment(payload);
+      setEditingCommitment(false);
     } catch (e) {
       toast.error('Failed to save weekly goals');
     } finally {
       setCreatingCommitment(false);
+    }
+  };
+
+  const handleResultSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const form = new FormData(e.currentTarget);
+    const payload = {
+      callsActual: parseInt((form.get('callsActual') as string) || '0', 10),
+      emailsActual: parseInt((form.get('emailsActual') as string) || '0', 10),
+      meetingsActual: parseInt((form.get('meetingsActual') as string) || '0', 10),
+    };
+    try {
+      setSavingLastWeek(true);
+      await resultApi.createOrUpdateResult(payload);
+      toast.success("Last week's activity saved");
+      setLastWeekActivity(payload);
+      // Refresh dashboard summary after saving
+      loadSummary();
+    } catch (e) {
+      toast.error("Failed to save last week's activity");
+    } finally {
+      setSavingLastWeek(false);
     }
   };
 
@@ -130,7 +172,7 @@ const Dashboard = () => {
         })}
       </div>
 
-      {/* Suggested Daily Plan */}
+      {/* Suggested Daily Plan and Weekly Goals */}
       <div className="grid grid-cols-1 gap-4">
         <div className="card rounded-xl">
           <h2 className="text-lg font-semibold mb-4">Suggested daily plan</h2>
@@ -148,6 +190,27 @@ const Dashboard = () => {
                 <p className="text-sm text-gray-600">Meetings/day</p>
                 <p className="text-2xl font-bold text-primary-700">{dailySplit?.meetings}</p>
               </div>
+              <div className="col-span-3 text-right mt-4">
+                <button
+                  type="button"
+                  onClick={() => setEditingCommitment((v) => !v)}
+                  className="text-sm text-primary-700 hover:underline"
+                >
+                  {editingCommitment ? 'Hide weekly goals form' : 'Edit weekly goals'}
+                </button>
+              </div>
+              {editingCommitment && (
+                <form onSubmit={handleCommitmentSubmit} className="space-y-3 mt-4">
+                  <div className="grid grid-cols-3 gap-3">
+                    <input name="callsTarget" type="number" min={0} placeholder="Calls" className="input-field" required defaultValue={weeklyCommitment.callsTarget} />
+                    <input name="emailsTarget" type="number" min={0} placeholder="Emails" className="input-field" required defaultValue={weeklyCommitment.emailsTarget} />
+                    <input name="meetingsTarget" type="number" min={0} placeholder="Meetings" className="input-field" required defaultValue={weeklyCommitment.meetingsTarget} />
+                  </div>
+                  <div className="flex justify-end">
+                    <button type="submit" disabled={creatingCommitment} className="btn-primary rounded-lg">{creatingCommitment ? 'Saving...' : 'Save weekly goals'}</button>
+                  </div>
+                </form>
+              )}
             </div>
           ) : (
             <div>
@@ -164,6 +227,23 @@ const Dashboard = () => {
               </form>
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Last Week Activity Entry */}
+      <div className="grid grid-cols-1 gap-4">
+        <div className="card rounded-xl">
+          <h2 className="text-lg font-semibold mb-4">Enter last week's activity</h2>
+          <form onSubmit={handleResultSubmit} className="space-y-3">
+            <div className="grid grid-cols-3 gap-3">
+              <input name="callsActual" type="number" min={0} placeholder="Calls" className="input-field" required defaultValue={lastWeekActivity.callsActual} />
+              <input name="emailsActual" type="number" min={0} placeholder="Emails" className="input-field" required defaultValue={lastWeekActivity.emailsActual} />
+              <input name="meetingsActual" type="number" min={0} placeholder="Meetings" className="input-field" required defaultValue={lastWeekActivity.meetingsActual} />
+            </div>
+            <div className="flex justify-end">
+              <button type="submit" disabled={savingLastWeek} className="btn-primary rounded-lg">{savingLastWeek ? 'Saving...' : "Save last week's activity"}</button>
+            </div>
+          </form>
         </div>
       </div>
 
