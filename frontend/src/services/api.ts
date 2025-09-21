@@ -96,8 +96,8 @@ export const resultApi = {
 
 // Team update endpoints
 export const teamUpdateApi = {
-  getAll: (category?: string, section?: string) =>
-    api.get<TeamUpdate[]>('/team-updates', { params: { category, section } }),
+  getAll: (category?: string, section?: string, q?: string) =>
+    api.get<TeamUpdate[]>('/team-updates', { params: { category, section, q } }),
   getById: (id: number) => api.get<TeamUpdate>(`/team-updates/${id}`),
   getFavorites: () => api.get<TeamUpdate[]>('/team-updates/me/favorites'),
   addFavorite: (id: number) => api.post(`/team-updates/${id}/favorite`),

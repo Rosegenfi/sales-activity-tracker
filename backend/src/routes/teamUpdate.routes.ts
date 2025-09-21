@@ -25,7 +25,7 @@ const ALLOWED_CATEGORIES = [
 // Get all team updates
 router.get('/', authenticate as RequestHandler, (async (req, res) => {
   try {
-    const { category, section } = req.query;
+    const { category, section, q } = req.query as { category?: string; section?: string; q?: string };
     
     let query = `
       SELECT tu.*, u.first_name, u.last_name 
@@ -44,6 +44,11 @@ router.get('/', authenticate as RequestHandler, (async (req, res) => {
       where.push(`tu.section = $${values.length + 1}`);
       values.push(section);
     }
+    if (q && q.trim()) {
+      const like = `%${q.trim()}%`;
+      where.push(`(tu.title ILIKE $${values.length + 1} OR tu.content ILIKE $${values.length + 2})`);
+      values.push(like, like);
+    }
     if (where.length) {
       query += ' WHERE ' + where.join(' AND ');
     }
@@ -52,7 +57,7 @@ router.get('/', authenticate as RequestHandler, (async (req, res) => {
     
     const result = await pool.query(query, values);
 
-    const updates = result.rows.map(update => ({
+    const updates = result.rows.map((update: any) => ({
       id: update.id,
       title: update.title,
       content: update.content,

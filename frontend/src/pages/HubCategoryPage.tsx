@@ -17,6 +17,7 @@ const HubCategoryPage = () => {
   const [loading, setLoading] = useState(true);
   const [updates, setUpdates] = useState<TeamUpdate[]>([]);
   const [section, setSection] = useState<string>(query.get('section') || '');
+  const [q, setQ] = useState<string>(query.get('q') || '');
 
   useEffect(() => {
     setSection(query.get('section') || '');
@@ -25,7 +26,7 @@ const HubCategoryPage = () => {
   useEffect(() => {
     const load = async () => {
       try {
-        const res = await teamUpdateApi.getAll(category, section || undefined);
+        const res = await teamUpdateApi.getAll(category, section || undefined, q || undefined);
         setUpdates(res.data);
       } catch (e) {
         // ignore for now
@@ -34,7 +35,7 @@ const HubCategoryPage = () => {
       }
     };
     load();
-  }, [category, section]);
+  }, [category, section, q]);
 
   const def: any = (HUB_CATEGORY_DEFS as any)[category] || {};
   const Icon = def.Icon;
@@ -68,25 +69,36 @@ const HubCategoryPage = () => {
         </div>
       </div>
 
-      {/* Section filter (if any) */}
-      <div className="flex items-center justify-between">
-        <div className="text-sm text-gray-600">
+      {/* Filters and search */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="flex items-center text-sm text-gray-600">
           {section ? (
             <span>
-              Filtering by section: <span className="font-medium">{section}</span>
+              Section: <span className="font-medium">{section}</span>
+              <button className="ml-2 text-primary-700 hover:underline" onClick={() => navigate(`/hub/${category}`)}>Clear</button>
             </span>
           ) : (
             <span>All sections</span>
           )}
         </div>
-        {section && (
-          <button
-            className="text-sm text-primary-700 hover:underline"
-            onClick={() => navigate(`/hub/${category}`)}
+        <div className="md:col-span-2">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              const params = new URLSearchParams(window.location.search);
+              if (q) params.set('q', q); else params.delete('q');
+              navigate(`/hub/${category}?${params.toString()}`);
+            }}
           >
-            Clear section
-          </button>
-        )}
+            <input
+              type="search"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Search within this category..."
+              className="input-field w-full"
+            />
+          </form>
+        </div>
       </div>
 
       {/* Content tiles */}
