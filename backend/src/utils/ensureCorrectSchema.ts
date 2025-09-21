@@ -23,8 +23,8 @@ export async function ensureCorrectSchema() {
     console.log('Results columns:', checkResults.rows);
     
     // Fix commitments table if needed
-    const hasCommitmentsOldColumn = checkCommitments.rows.some(r => r.column_name === 'week_start');
-    const hasCommitmentsNewColumn = checkCommitments.rows.some(r => r.column_name === 'week_start_date');
+    const hasCommitmentsOldColumn = checkCommitments.rows.some((r: any) => r.column_name === 'week_start');
+    const hasCommitmentsNewColumn = checkCommitments.rows.some((r: any) => r.column_name === 'week_start_date');
     
     if (hasCommitmentsOldColumn && !hasCommitmentsNewColumn) {
       console.log('Renaming week_start to week_start_date in weekly_commitments...');
@@ -33,8 +33,8 @@ export async function ensureCorrectSchema() {
     }
     
     // Fix results table if needed
-    const hasResultsOldColumn = checkResults.rows.some(r => r.column_name === 'week_start');
-    const hasResultsNewColumn = checkResults.rows.some(r => r.column_name === 'week_start_date');
+    const hasResultsOldColumn = checkResults.rows.some((r: any) => r.column_name === 'week_start');
+    const hasResultsNewColumn = checkResults.rows.some((r: any) => r.column_name === 'week_start_date');
     
     if (hasResultsOldColumn && !hasResultsNewColumn) {
       console.log('Renaming week_start to week_start_date in weekly_results...');
@@ -79,6 +79,42 @@ export async function ensureCorrectSchema() {
       console.log('Adding external_link column to team_updates...');
       await pool.query("ALTER TABLE team_updates ADD COLUMN external_link TEXT");
       console.log('external_link column added to team_updates');
+    }
+
+    // Ensure favorites table exists
+    const checkFavorites = await pool.query(`
+      SELECT to_regclass('public.user_favorite_updates') as exists;
+    `);
+    if (!checkFavorites.rows[0].exists) {
+      console.log('Creating user_favorite_updates table...');
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS user_favorite_updates (
+          user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+          update_id INTEGER NOT NULL REFERENCES team_updates(id) ON DELETE CASCADE,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+          PRIMARY KEY (user_id, update_id)
+        );
+      `);
+      await pool.query(`CREATE INDEX IF NOT EXISTS idx_user_fav_user_created ON user_favorite_updates(user_id, created_at DESC);`);
+      console.log('user_favorite_updates table created.');
+    }
+
+    // Ensure recent views table exists
+    const checkRecents = await pool.query(`
+      SELECT to_regclass('public.user_recent_update_views') as exists;
+    `);
+    if (!checkRecents.rows[0].exists) {
+      console.log('Creating user_recent_update_views table...');
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS user_recent_update_views (
+          user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+          update_id INTEGER NOT NULL REFERENCES team_updates(id) ON DELETE CASCADE,
+          viewed_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+          PRIMARY KEY (user_id, update_id)
+        );
+      `);
+      await pool.query(`CREATE INDEX IF NOT EXISTS idx_user_recent_user_viewed ON user_recent_update_views(user_id, viewed_at DESC);`);
+      console.log('user_recent_update_views table created.');
     }
 
     // Ensure activity tables exist (activity_event, activity_daily, activity_weekly)

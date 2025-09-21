@@ -171,13 +171,15 @@ router.get('/summary', authenticate, async (req, res) => {
 router.get('/history', authenticate, async (req, res) => {
   try {
     const { weeks = 4 } = req.query;
-    const weeksList = [];
-    
-    // Generate list of past weeks
-    for (let i = 1; i <= parseInt(weeks as string); i++) {
-      const date = new Date();
-      date.setDate(date.getDate() - (i * 7));
-      weeksList.push(getPreviousWeekStartDate(date));
+    const weeksList: string[] = [];
+
+    // Generate list starting from previous week, then week before, etc.
+    // i = 1 => previous week; i = 2 => previous-previous; ...
+    const count = parseInt(weeks as string);
+    for (let i = 1; i <= count; i++) {
+      const base = new Date();
+      base.setDate(base.getDate() - ((i - 1) * 7));
+      weeksList.push(getPreviousWeekStartDate(base));
     }
 
     const placeholders = weeksList.map((_, index) => `$${index + 1}`).join(',');
@@ -225,6 +227,45 @@ router.get('/history', authenticate, async (req, res) => {
         }))
       };
     });
+
+  // Get available weeks info (counts and range)
+  router.get('/weeks-available', authenticate, async (req, res) => {
+    try {
+      const resultsAgg = await pool.query(`
+        SELECT 
+          COUNT(DISTINCT week_start_date)::int AS count,
+          MIN(week_start_date) AS earliest,
+          MAX(week_start_date) AS latest
+        FROM weekly_results
+      `);
+
+      const commitmentsAgg = await pool.query(`
+        SELECT 
+          COUNT(DISTINCT week_start_date)::int AS count,
+          MIN(week_start_date) AS earliest,
+          MAX(week_start_date) AS latest
+        FROM weekly_commitments
+      `);
+
+      const intersectionAgg = await pool.query(`
+        SELECT COUNT(*)::int AS count FROM (
+          SELECT DISTINCT r.week_start_date
+          FROM weekly_results r
+          INNER JOIN weekly_commitments c 
+            ON c.week_start_date = r.week_start_date
+        ) x
+      `);
+
+      res.json({
+        resultsWeeks: resultsAgg.rows[0],
+        commitmentsWeeks: commitmentsAgg.rows[0],
+        bothWeeks: intersectionAgg.rows[0]
+      });
+    } catch (error) {
+      console.error('Get weeks-available error:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
 
     res.json(history);
   } catch (error) {
