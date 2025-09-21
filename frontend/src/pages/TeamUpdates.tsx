@@ -1,64 +1,19 @@
 import { useState, useEffect } from 'react';
 import { teamUpdateApi } from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
-import { MessageSquare, FileText, Link as LinkIcon, Tag, Plus, Edit2, Trash2, BookOpen, Phone, Search, ShieldCheck, BarChart2, Box, GraduationCap, Users } from 'lucide-react';
+import { MessageSquare, Link as LinkIcon, Tag, Plus, Edit2, Trash2, ChevronRight, Star, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import type { TeamUpdate } from '@/types';
+import { Link } from 'react-router-dom';
 
-const HUB_CATEGORY_DEFS = {
-  start_here: {
-    label: 'Start Here, New Joiners Guides',
-    description: 'Setup, expectations, week one checklist, core playbooks.',
-    Icon: BookOpen,
-  },
-  cold_calling: {
-    label: 'Cold Calling',
-    description: 'Open strong, qualify fast, handle objections, stay compliant.',
-    Icon: Phone,
-  },
-  prospecting: {
-    label: 'Prospecting',
-    description: 'ICP, triggers, research, personalization, cadences, data sources.',
-    Icon: Search,
-  },
-  cos_qc_onboarding: {
-    label: 'COS, QC, and Onboarding',
-    description: 'COS process, QC standards, ticket instructions, reference docs, onboarding escalations.',
-    Icon: ShieldCheck,
-  },
-  performance_accountability: {
-    label: 'Performance and Accountability',
-    description: 'Targets, pipeline hygiene, CRM analytics, Looker guides.',
-    Icon: BarChart2,
-  },
-  product_market: {
-    label: 'Product and Market',
-    description: 'Product basics, pricing, use cases, competitors, value proof.',
-    Icon: Box,
-  },
-  training_development: {
-    label: 'Extra Training and Development',
-    description: 'Upselling, discovery, best practices.',
-    Icon: GraduationCap,
-  },
-  client_templates_proposals: {
-    label: 'Client Templates and Proposals',
-    description: 'Emails, proposals, calculators, decks, case studies.',
-    Icon: FileText,
-  },
-  meetings_internal_comms: { label: 'Meetings and Internal Comms', Icon: Users },
-} as const;
-
-function formatCategoryLabel(key: string): string {
-  return key
-    .replace(/[_-]+/g, ' ')
-    .replace(/\b\w/g, (c) => c.toUpperCase());
-}
+import { HUB_CATEGORY_DEFS, formatCategoryLabel } from './hubCategories';
 
 const TeamUpdates = () => {
   const { user } = useAuth();
   const [updates, setUpdates] = useState<TeamUpdate[]>([]);
+  const [favorites, setFavorites] = useState<TeamUpdate[]>([]);
+  const [recents, setRecents] = useState<TeamUpdate[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -79,6 +34,8 @@ const TeamUpdates = () => {
 
   useEffect(() => {
     fetchCategoryCounts();
+    fetchFavorites();
+    fetchRecents();
   }, []);
 
   const fetchUpdates = async () => {
@@ -90,6 +47,24 @@ const TeamUpdates = () => {
       toast.error(`Failed to load resources: ${getErrorMessage(error)}`);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchFavorites = async () => {
+    try {
+      const res = await teamUpdateApi.getFavorites();
+      setFavorites(res.data);
+    } catch (e) {
+      // non-blocking
+    }
+  };
+
+  const fetchRecents = async () => {
+    try {
+      const res = await teamUpdateApi.getRecents();
+      setRecents(res.data);
+    } catch (e) {
+      // non-blocking
     }
   };
 
@@ -157,6 +132,57 @@ const TeamUpdates = () => {
     setShowForm(true);
   };
 
+  function HubCard({ update }: { update: TeamUpdate }) {
+    const def = (HUB_CATEGORY_DEFS as any)[update.category] || {};
+    const Icon = def.Icon || Tag;
+    const label = def.label || formatCategoryLabel(update.category);
+    return (
+      <div className="p-4 rounded-xl border border-gray-200 hover:shadow-sm transition bg-white">
+        <div className="flex items-start justify-between">
+          <div className="flex items-center">
+            <div className="h-10 w-10 rounded-lg flex items-center justify-center mr-3 bg-gray-100 text-gray-700">
+              <Icon className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="text-xs text-primary-700 font-medium">{label}{update.section ? ` • ${update.section}` : ''}</div>
+              <div className="text-md font-semibold text-gray-900">{update.title}</div>
+            </div>
+          </div>
+        </div>
+        <div className="mt-3 flex items-center justify-between">
+          <Link to={`/team-updates?category=${encodeURIComponent(update.category)}${update.section ? `&section=${encodeURIComponent(update.section)}` : ''}`} className="text-sm text-primary-600 hover:text-primary-700 font-medium">
+            Open
+          </Link>
+          {update.externalLink && (
+            <a href={update.externalLink} target="_blank" rel="noopener noreferrer" className="text-sm text-gray-600 hover:text-gray-800">External</a>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  function HubRow({ update }: { update: TeamUpdate }) {
+    const def = (HUB_CATEGORY_DEFS as any)[update.category] || {};
+    const Icon = def.Icon || Tag;
+    const label = def.label || formatCategoryLabel(update.category);
+    return (
+      <div className="flex items-center justify-between p-3 rounded-lg border border-gray-200 bg-white">
+        <div className="flex items-center">
+          <div className="h-8 w-8 rounded-lg flex items-center justify-center mr-3 bg-gray-100 text-gray-700">
+            <Icon className="h-4 w-4" />
+          </div>
+          <div>
+            <div className="text-xs text-primary-700 font-medium">{label}{update.section ? ` • ${update.section}` : ''}</div>
+            <div className="text-sm font-medium text-gray-900">{update.title}</div>
+          </div>
+        </div>
+        <Link to={`/team-updates?category=${encodeURIComponent(update.category)}${update.section ? `&section=${encodeURIComponent(update.section)}` : ''}`} className="text-sm text-primary-600 hover:text-primary-700 font-medium">
+          Open
+        </Link>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -165,15 +191,34 @@ const TeamUpdates = () => {
     );
   }
 
-  // Group updates by section within the selected category view
-  const updatesBySection = updates.reduce((acc: Record<string, TeamUpdate[]>, item) => {
-    const key = item.section?.trim() || 'General';
-    if (!acc[key]) acc[key] = [];
-    acc[key].push(item);
-    return acc;
-  }, {});
+  const categoryKeys = Object.keys(HUB_CATEGORY_DEFS);
 
-  const sortedSectionEntries = Object.entries(updatesBySection).sort(([a], [b]) => a.localeCompare(b));
+  // Guided steps per category (simple static mapping)
+  function journeyStepsForCategory(categoryKey: string): Array<{ key: string; title: string; caption?: string; section?: string }> {
+    switch (categoryKey) {
+      case 'start_here':
+        return [
+          { key: 'welcome', title: 'Welcome and Setup', caption: 'Access, tools, and week-one checklist', section: 'Setup' },
+          { key: 'playbook', title: 'Core Playbooks', caption: 'What good looks like', section: 'Playbooks' },
+        ];
+      case 'cold_calling':
+        return [
+          { key: 'open', title: 'Open strong', caption: 'Hooks and pattern interrupts', section: 'Openers' },
+          { key: 'qualify', title: 'Qualify fast', caption: 'Frameworks and questions', section: 'Qualification' },
+          { key: 'objections', title: 'Handle objections', caption: 'Top 10 and frameworks', section: 'Objections' },
+        ];
+      case 'prospecting':
+        return [
+          { key: 'icp', title: 'ICP and Triggers', caption: 'Signals and research', section: 'ICP' },
+          { key: 'personalize', title: 'Personalization', caption: 'Messaging and examples', section: 'Personalization' },
+        ];
+      default:
+        return [
+          { key: 'learn', title: 'Learn the basics', caption: 'Start here' },
+          { key: 'apply', title: 'Apply with templates', caption: 'Use cases and examples' },
+        ];
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -203,46 +248,82 @@ const TeamUpdates = () => {
         </div>
       </div>
 
-      {/* Category Filter - redesigned as tile grid */}
-      <div className="card">
+      {/* Favorites and Recently Viewed */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="card rounded-xl lg:col-span-2">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold flex items-center"><Star className="h-5 w-5 text-yellow-500 mr-2" /> Favorites</h2>
+          </div>
+          {favorites.length === 0 ? (
+            <p className="text-gray-500">No favorites yet</p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {favorites.slice(0, 6).map((u) => (
+                <HubCard key={`fav-${u.id}`} update={u} />
+              ))}
+            </div>
+          )}
+        </div>
+        <div className="card rounded-xl">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold flex items-center"><Clock className="h-5 w-5 text-primary-600 mr-2" /> Recently Viewed</h2>
+          </div>
+          {recents.length === 0 ? (
+            <p className="text-gray-500">No recent views</p>
+          ) : (
+            <div className="space-y-3">
+              {recents.slice(0, 6).map((u) => (
+                <HubRow key={`rec-${u.id}`} update={u} />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Category Journeys */}
+      <div className="card rounded-xl">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Categories</h2>
+          <h2 className="text-lg font-semibold">Explore Journeys</h2>
           <button
             onClick={() => setSelectedCategory('')}
             className={`text-sm font-medium ${selectedCategory === '' ? 'text-primary-700' : 'text-gray-600 hover:text-gray-800'}`}
           >
-            Clear filter
+            Clear selection
           </button>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {Object.entries(HUB_CATEGORY_DEFS).map(([key, def]) => {
-            const Icon = (def as any).Icon;
-            const isActive = selectedCategory === key;
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {categoryKeys.map((key) => {
+            const def = (HUB_CATEGORY_DEFS as any)[key];
+            const Icon = def.Icon;
             const count = categoryCounts[key] ?? 0;
+            const isActive = selectedCategory === key;
             return (
-              <div
-                key={key}
-                onClick={() => setSelectedCategory(key)}
-                className={`tile ${isActive ? 'tile-active' : ''} relative group z-10 hover:z-50`}
-              >
-                <div className="flex items-center">
-                  <div className={`h-12 w-12 rounded-lg flex items-center justify-center mr-4 ${isActive ? 'bg-primary-100 text-primary-700' : 'bg-gray-100 text-gray-700'}`}>
-                    <Icon className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <div className="text-sm font-medium text-gray-900">{(def as any).label}</div>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <span className="tile-badge">{count}</span>
-                </div>
-                {(def as any).description && (
-                  <div className="absolute z-50 left-1/2 -translate-x-1/2 top-full mt-2 w-72 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
-                    <div className="bg-gray-900 text-white text-xs leading-snug rounded-md px-3 py-2 shadow-lg border border-gray-800 break-words">
-                      {(def as any).description}
+              <div key={key} className={`p-5 rounded-xl border ${isActive ? 'border-primary-300 bg-primary-50' : 'border-gray-200 bg-white'} hover:shadow-sm transition cursor-pointer`} onClick={() => setSelectedCategory(key)}>
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center">
+                    <div className={`h-12 w-12 rounded-lg flex items-center justify-center mr-4 ${isActive ? 'bg-primary-100 text-primary-700' : 'bg-gray-100 text-gray-700'}`}>
+                      <Icon className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <div className="text-md font-semibold text-gray-900">{def.label}</div>
+                      {def.description && <div className="text-sm text-gray-600 mt-1">{def.description}</div>}
                     </div>
                   </div>
-                )}
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">{count}</span>
+                </div>
+
+                {/* Guided steps */}
+                <div className="mt-4 space-y-2">
+                  {journeyStepsForCategory(key).map((step) => (
+                    <a key={step.key} href={`#/hub/${encodeURIComponent(key)}?section=${encodeURIComponent(step.section || '')}`} className="flex items-center justify-between p-3 rounded-lg border border-gray-200 hover:border-primary-300 hover:bg-primary-50 group">
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">{step.title}</div>
+                        {step.caption && <div className="text-xs text-gray-600">{step.caption}</div>}
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-primary-600" />
+                    </a>
+                  ))}
+                </div>
               </div>
             );
           })}
@@ -335,94 +416,7 @@ const TeamUpdates = () => {
         </div>
       )}
 
-      {/* Updates List */}
-      <div className="space-y-6">
-        {updates.length === 0 ? (
-          <div className="card text-center py-12">
-            <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500">No resources found</p>
-          </div>
-        ) : (
-          sortedSectionEntries.map(([sectionName, sectionUpdates]) => (
-            <div key={sectionName} className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-md font-semibold text-gray-800">
-                  {sectionName}
-                </h3>
-                <span className="text-xs text-gray-500">{sectionUpdates.length} item{sectionUpdates.length !== 1 ? 's' : ''}</span>
-              </div>
-              {sectionUpdates.map((update) => {
-                const def = HUB_CATEGORY_DEFS[update.category as keyof typeof HUB_CATEGORY_DEFS] as any;
-                const Icon = def?.Icon || Tag;
-                const label = def?.label || formatCategoryLabel(update.category);
-                return (
-                  <div key={update.id} className="card hover:shadow-md transition-shadow">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center mb-2">
-                          <Icon className="h-5 w-5 text-primary-600 mr-2" />
-                          <span className="text-sm font-medium text-primary-600">
-                            {label}
-                          </span>
-                          {update.section && (
-                            <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-50 text-primary-700 border border-primary-200">
-                              {update.section}
-                            </span>
-                          )}
-                          <span className="text-sm text-gray-500 ml-2">
-                            • {format(new Date(update.createdAt), 'MMM d, yyyy')}
-                          </span>
-                        </div>
-                        
-                        <h3 className="text-lg font-semibold mb-2">{update.title}</h3>
-                        
-                        {update.content && (
-                          <p className="text-gray-600 mb-3 whitespace-pre-wrap">{update.content}</p>
-                        )}
-                        
-                        {update.externalLink && (
-                          <a
-                            href={update.externalLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center text-primary-600 hover:text-primary-700 font-medium"
-                          >
-                            <LinkIcon className="h-4 w-4 mr-1" />
-                            View Link
-                          </a>
-                        )}
-                        
-                        {update.createdBy && (
-                          <p className="text-xs text-gray-500 mt-3">
-                            Posted by {update.createdBy.name}
-                          </p>
-                        )}
-                      </div>
-                      
-                      {user?.role === 'admin' && (
-                        <div className="flex items-center space-x-2 ml-4">
-                          <button
-                            onClick={() => handleEdit(update)}
-                            className="p-2 text-gray-500 hover:text-primary-600 transition-colors"
-                          >
-                            <Edit2 className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(update.id)}
-                            className="p-2 text-gray-500 hover:text-red-600 transition-colors"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ))
-        )}
-      </div>
+      {/* No bottom list - encourage navigation via journeys */}
     </div>
   );
 };

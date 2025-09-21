@@ -11,6 +11,8 @@ import Leaderboard from '@/pages/Leaderboard';
 import WeeklyCommits from '@/pages/WeeklyCommits';
 import UserProfile from '@/pages/UserProfile';
 import TeamUpdates from '@/pages/TeamUpdates';
+import HubCategoryPage from '@/pages/HubCategoryPage';
+import HubResourceDetail from '@/pages/HubResourceDetail';
 import UserManagement from '@/pages/UserManagement';
 import ChangePassword from '@/pages/ChangePassword';
 import AdminActivity from '@/pages/AdminActivity';
@@ -55,6 +57,8 @@ function App() {
             <Route path="leaderboard" element={<Leaderboard />} />
             <Route path="weekly-commits" element={<WeeklyCommits />} />
             <Route path="team-updates" element={<TeamUpdates />} />
+            <Route path="hub/:category" element={<HubCategoryPage />} />
+            <Route path="hub/resource/:id" element={<HubResourceDetail />} />
             <Route path="profile/:userId" element={<UserProfile />} />
             <Route path="change-password" element={<ChangePassword />} />
             <Route path="users" element={<ProtectedRoute requireAdmin><UserManagement /></ProtectedRoute>} />

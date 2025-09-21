@@ -1,4 +1,4 @@
-import { Router, Response } from 'express';
+import { Router, Response, RequestHandler } from 'express';
 import { body, validationResult } from 'express-validator';
 import pool from '../config/database';
 import { authenticate, authorize, AuthRequest } from '../middleware/auth.middleware';
@@ -23,9 +23,9 @@ const ALLOWED_CATEGORIES = [
 ];
 
 // Get all team updates
-router.get('/', authenticate, async (req, res) => {
+router.get('/', authenticate as RequestHandler, (async (req, res) => {
   try {
-    const { category } = req.query;
+    const { category, section } = req.query;
     
     let query = `
       SELECT tu.*, u.first_name, u.last_name 
@@ -35,9 +35,17 @@ router.get('/', authenticate, async (req, res) => {
     
     const values: any[] = [];
     
+    const where: string[] = [];
     if (category) {
-      query += ' WHERE tu.category = $1';
+      where.push(`tu.category = $${values.length + 1}`);
       values.push(category);
+    }
+    if (section) {
+      where.push(`tu.section = $${values.length + 1}`);
+      values.push(section);
+    }
+    if (where.length) {
+      query += ' WHERE ' + where.join(' AND ');
     }
     
     query += ' ORDER BY tu.created_at DESC';
@@ -65,7 +73,141 @@ router.get('/', authenticate, async (req, res) => {
     console.error('Get team updates error:', error);
     res.status(500).json({ message: 'Server error' });
   }
-});
+}) as RequestHandler);
+
+// Get single update and record recent view
+router.get('/:id', authenticate as RequestHandler, (async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const result = await pool.query(
+      `SELECT tu.*, u.first_name, u.last_name 
+       FROM team_updates tu
+       LEFT JOIN users u ON tu.created_by = u.id
+       WHERE tu.id = $1`,
+      [id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Team update not found' });
+    }
+
+    // Upsert recent view for this user
+    await pool.query(
+      `INSERT INTO user_recent_update_views (user_id, update_id, viewed_at)
+       VALUES ($1, $2, now())
+       ON CONFLICT (user_id, update_id) DO UPDATE SET viewed_at = EXCLUDED.viewed_at`,
+      [req.user!.id, id]
+    );
+
+    const update = result.rows[0];
+    res.json({
+      id: update.id,
+      title: update.title,
+      content: update.content,
+      category: update.category,
+      section: update.section,
+      fileUrl: update.file_url,
+      externalLink: update.external_link,
+      createdBy: update.created_by ? {
+        id: update.created_by,
+        name: `${update.first_name} ${update.last_name}`
+      } : null,
+      createdAt: update.created_at,
+      updatedAt: update.updated_at
+    });
+  } catch (error) {
+    console.error('Get team update by id error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+}) as RequestHandler);
+
+// Favorites: add
+router.post('/:id/favorite', authenticate as RequestHandler, (async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    await pool.query(
+      `INSERT INTO user_favorite_updates (user_id, update_id)
+       VALUES ($1, $2)
+       ON CONFLICT (user_id, update_id) DO NOTHING`,
+      [req.user!.id, id]
+    );
+    res.status(204).send();
+  } catch (error) {
+    console.error('Favorite add error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+}) as RequestHandler);
+
+// Favorites: remove
+router.delete('/:id/favorite', authenticate as RequestHandler, (async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    await pool.query(
+      `DELETE FROM user_favorite_updates WHERE user_id = $1 AND update_id = $2`,
+      [req.user!.id, id]
+    );
+    res.status(204).send();
+  } catch (error) {
+    console.error('Favorite remove error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+}) as RequestHandler);
+
+// Favorites: list for current user
+router.get('/me/favorites', authenticate as RequestHandler, (async (req: AuthRequest, res: Response) => {
+  try {
+    const result = await pool.query(
+      `SELECT tu.*
+       FROM user_favorite_updates f
+       INNER JOIN team_updates tu ON tu.id = f.update_id
+       WHERE f.user_id = $1
+       ORDER BY f.created_at DESC`,
+      [req.user!.id]
+    );
+    res.json(result.rows.map((update: any) => ({
+      id: update.id,
+      title: update.title,
+      content: update.content,
+      category: update.category,
+      section: update.section,
+      fileUrl: update.file_url,
+      externalLink: update.external_link,
+      createdAt: update.created_at,
+      updatedAt: update.updated_at
+    })));
+  } catch (error) {
+    console.error('Favorite list error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+}) as RequestHandler);
+
+// Recents: list for current user
+router.get('/me/recents', authenticate as RequestHandler, (async (req: AuthRequest, res: Response) => {
+  try {
+    const result = await pool.query(
+      `SELECT tu.*
+       FROM user_recent_update_views v
+       INNER JOIN team_updates tu ON tu.id = v.update_id
+       WHERE v.user_id = $1
+       ORDER BY v.viewed_at DESC
+       LIMIT 20`,
+      [req.user!.id]
+    );
+    res.json(result.rows.map((update: any) => ({
+      id: update.id,
+      title: update.title,
+      content: update.content,
+      category: update.category,
+      section: update.section,
+      fileUrl: update.file_url,
+      externalLink: update.external_link,
+      createdAt: update.created_at,
+      updatedAt: update.updated_at
+    })));
+  } catch (error) {
+    console.error('Recents list error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+}) as RequestHandler);
 
 // Get updates by category
 router.get('/categories', authenticate, async (req, res) => {
