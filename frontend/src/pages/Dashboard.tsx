@@ -13,11 +13,10 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-const activityTypes: Array<{ key: 'call'|'email'|'meeting'|'social'; label: string; icon: any; color: string }> = [
+const activityTypes: Array<{ key: 'call'|'email'|'meeting'; label: string; icon: any; color: string }> = [
   { key: 'call', label: 'Calls', icon: Phone, color: 'text-primary-500' },
   { key: 'email', label: 'Emails', icon: Mail, color: 'text-primary-500' },
   { key: 'meeting', label: 'Meetings', icon: Users, color: 'text-emerald-600' },
-  { key: 'social', label: 'Social', icon: Sparkles, color: 'text-amber-600' },
 ];
 
 const Dashboard = () => {
