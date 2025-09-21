@@ -186,7 +186,7 @@ router.get('/history', authenticate, async (req, res) => {
     
     const result = await pool.query(`
       SELECT 
-        r.week_start_date,
+        r.week_start_date::text AS week_start_date,
         u.id,
         u.first_name,
         u.last_name,

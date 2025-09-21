@@ -131,10 +131,9 @@ const UserProfile = () => {
     );
   }
 
-  // Prepare chart data - show last 6 weeks with actual results
+  // Prepare chart data - use last 8 weeks with actual results (zeros if missing)
   const chartData = weekData
-    .filter(week => week.results && (week.results.callsActual > 0 || week.results.emailsActual > 0 || week.results.meetingsActual > 0))
-    .slice(0, 6)
+    .slice(0, 8)
     .reverse()
     .map(week => ({
       week: format(new Date(week.weekStart), 'MMM d'),
@@ -221,22 +220,46 @@ const UserProfile = () => {
       </div>
 
       {/* Performance Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="card rounded-xl">
-          <h2 className="text-lg font-semibold mb-4">Activity Trend (Last 6 Weeks)</h2>
-          <ResponsiveContainer width="100%" height={250}>
+          <h2 className="text-lg font-semibold mb-4">Calls (Last 8 Weeks)</h2>
+          <ResponsiveContainer width="100%" height={220}>
             <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="week" />
               <YAxis />
               <Tooltip />
               <Line type="monotone" dataKey="calls" stroke="#81ac71" name="Calls" strokeWidth={2} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="card rounded-xl">
+          <h2 className="text-lg font-semibold mb-4">Emails (Last 8 Weeks)</h2>
+          <ResponsiveContainer width="100%" height={220}>
+            <LineChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="week" />
+              <YAxis />
+              <Tooltip />
               <Line type="monotone" dataKey="emails" stroke="#10b981" name="Emails" strokeWidth={2} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="card rounded-xl">
+          <h2 className="text-lg font-semibold mb-4">Meetings (Last 8 Weeks)</h2>
+          <ResponsiveContainer width="100%" height={220}>
+            <LineChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="week" />
+              <YAxis />
+              <Tooltip />
               <Line type="monotone" dataKey="meetings" stroke="#f59e0b" name="Meetings" strokeWidth={2} />
             </LineChart>
           </ResponsiveContainer>
         </div>
+      </div>
 
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="card rounded-xl">
           <h2 className="text-lg font-semibold mb-4">Achievement Rate (Last 6 Weeks)</h2>
           <ResponsiveContainer width="100%" height={250}>
@@ -249,6 +272,7 @@ const UserProfile = () => {
             </BarChart>
           </ResponsiveContainer>
         </div>
+        {/* spacer or future card */}
       </div>
 
       {/* Recent Performance */}
