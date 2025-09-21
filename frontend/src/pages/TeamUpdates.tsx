@@ -196,7 +196,7 @@ const TeamUpdates = () => {
       default:
         return [
           { key: 'learn', title: 'Learn the basics', caption: 'Start here' },
-          { key: 'apply', title: 'Apply with templates', caption: 'Use cases and examples' },
+          { key: 'extra', title: 'Extra documents', caption: 'Use cases and examples' },
         ];
     }
   }
