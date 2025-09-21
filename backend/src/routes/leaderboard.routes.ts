@@ -171,13 +171,15 @@ router.get('/summary', authenticate, async (req, res) => {
 router.get('/history', authenticate, async (req, res) => {
   try {
     const { weeks = 4 } = req.query;
-    const weeksList = [];
-    
-    // Generate list of past weeks
-    for (let i = 1; i <= parseInt(weeks as string); i++) {
-      const date = new Date();
-      date.setDate(date.getDate() - (i * 7));
-      weeksList.push(getPreviousWeekStartDate(date));
+    const weeksList: string[] = [];
+
+    // Generate list starting from previous week, then week before, etc.
+    // i = 1 => previous week; i = 2 => previous-previous; ...
+    const count = parseInt(weeks as string);
+    for (let i = 1; i <= count; i++) {
+      const base = new Date();
+      base.setDate(base.getDate() - ((i - 1) * 7));
+      weeksList.push(getPreviousWeekStartDate(base));
     }
 
     const placeholders = weeksList.map((_, index) => `$${index + 1}`).join(',');
