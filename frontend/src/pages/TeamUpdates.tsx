@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { teamUpdateApi } from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
-import { MessageSquare, Link as LinkIcon, Tag, Plus, Edit2, Trash2, ChevronRight, Star, Clock } from 'lucide-react';
-import { format } from 'date-fns';
+import { Tag, Plus, ChevronRight, Star, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
 import type { TeamUpdate } from '@/types';
 import { Link } from 'react-router-dom';
@@ -11,11 +10,11 @@ import { HUB_CATEGORY_DEFS, formatCategoryLabel } from './hubCategories';
 
 const TeamUpdates = () => {
   const { user } = useAuth();
-  const [updates, setUpdates] = useState<TeamUpdate[]>([]);
+  // No bottom list; we focus on favorites, recents, and journeys
   const [favorites, setFavorites] = useState<TeamUpdate[]>([]);
   const [recents, setRecents] = useState<TeamUpdate[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
-  const [loading, setLoading] = useState(true);
+  const [loading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingUpdate, setEditingUpdate] = useState<TeamUpdate | null>(null);
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
@@ -29,26 +28,14 @@ const TeamUpdates = () => {
   };
 
   useEffect(() => {
-    fetchUpdates();
-  }, [selectedCategory]);
-
-  useEffect(() => {
     fetchCategoryCounts();
-    fetchFavorites();
-    fetchRecents();
+      fetchFavorites();
+      fetchRecents();
   }, []);
 
-  const fetchUpdates = async () => {
-    try {
-      const response = await teamUpdateApi.getAll(selectedCategory);
-      setUpdates(response.data);
-    } catch (error) {
-      console.error('Error fetching updates:', error);
-      toast.error(`Failed to load resources: ${getErrorMessage(error)}`);
-    } finally {
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+    // when category changes, could refresh counts later
+  }, [selectedCategory]);
 
   const fetchFavorites = async () => {
     try {
@@ -105,7 +92,9 @@ const TeamUpdates = () => {
       
       setShowForm(false);
       setEditingUpdate(null);
-      fetchUpdates();
+      // refresh lists after create/update
+      fetchFavorites();
+      fetchRecents();
       fetchCategoryCounts();
     } catch (error: any) {
       const msg = getErrorMessage(error);
@@ -113,24 +102,7 @@ const TeamUpdates = () => {
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!window.confirm('Are you sure you want to delete this update?')) return;
-
-    try {
-      await teamUpdateApi.delete(id);
-      toast.success('Update deleted successfully');
-      fetchUpdates();
-      fetchCategoryCounts();
-    } catch (error: any) {
-      const msg = getErrorMessage(error);
-      toast.error(`Failed to delete update: ${msg}`);
-    }
-  };
-
-  const handleEdit = (update: TeamUpdate) => {
-    setEditingUpdate(update);
-    setShowForm(true);
-  };
+  // Admin edit/delete actions are available from detail or dedicated admin screens
 
   function HubCard({ update }: { update: TeamUpdate }) {
     const def = (HUB_CATEGORY_DEFS as any)[update.category] || {};
