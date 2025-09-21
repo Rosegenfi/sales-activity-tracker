@@ -14,7 +14,7 @@ const TeamUpdates = () => {
   const [favorites, setFavorites] = useState<TeamUpdate[]>([]);
   const [recents, setRecents] = useState<TeamUpdate[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
-  const [loading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingUpdate, setEditingUpdate] = useState<TeamUpdate | null>(null);
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
@@ -28,9 +28,18 @@ const TeamUpdates = () => {
   };
 
   useEffect(() => {
-    fetchCategoryCounts();
-      fetchFavorites();
-      fetchRecents();
+    const run = async () => {
+      try {
+        await Promise.all([
+          fetchCategoryCounts(),
+          fetchFavorites(),
+          fetchRecents(),
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    run();
   }, []);
 
   useEffect(() => {
