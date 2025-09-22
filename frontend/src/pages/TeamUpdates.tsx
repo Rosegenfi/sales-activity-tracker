@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 import type { TeamUpdate } from '@/types';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 
-import { HUB_CATEGORY_DEFS, formatCategoryLabel, ALPHABETICAL_CATEGORY_KEYS } from './hubCategories';
+import { HUB_CATEGORY_DEFS, formatCategoryLabel, CATEGORY_KEYS_ORDERED } from './hubCategories';
 
 const TeamUpdates = () => {
   const { user } = useAuth();
@@ -284,7 +284,7 @@ const TeamUpdates = () => {
           </button>
         </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {ALPHABETICAL_CATEGORY_KEYS.map((key) => {
+          {CATEGORY_KEYS_ORDERED.map((key) => {
             const def = (HUB_CATEGORY_DEFS as any)[key];
             const Icon = def.Icon;
             const count = categoryCounts[key?.toLowerCase?.() ? key.toLowerCase() : key] ?? 0;

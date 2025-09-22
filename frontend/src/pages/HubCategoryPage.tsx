@@ -114,7 +114,7 @@ const HubCategoryPage = () => {
             const IconInner = defInner.Icon || Tag;
             const label = defInner.label || formatCategoryLabel(u.category);
             return (
-              <Link to={`/hub/resource/${u.id}`} key={u.id} className="p-5 rounded-xl border border-gray-200 bg-white hover:shadow-sm transition block">
+              <Link to={`/hub/resource/${u.id}?fromCategory=${encodeURIComponent(category)}`} key={u.id} className="p-5 rounded-xl border border-gray-200 bg-white hover:shadow-sm transition block">
                 <div className="flex items-start">
                   <div className="h-10 w-10 rounded-lg flex items-center justify-center mr-3 bg-gray-100 text-gray-700">
                     <IconInner className="h-5 w-5" />

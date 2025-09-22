@@ -56,3 +56,16 @@ export const ALPHABETICAL_CATEGORY_KEYS = Object.keys(HUB_CATEGORY_DEFS).sort((a
   return al.localeCompare(bl);
 });
 
+// Fixed preferred ordering for tiles
+export const CATEGORY_KEYS_ORDERED = [
+  'start_here',
+  'cold_calling',
+  'prospecting',
+  'cos_qc_onboarding',
+  'performance_accountability',
+  'product_market',
+  'training_development',
+  'client_templates_proposals',
+  'meetings_internal_comms',
+] as const;
+

@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { teamUpdateApi } from '@/services/api';
 import type { TeamUpdate } from '@/types';
 import { HUB_CATEGORY_DEFS, formatCategoryLabel } from './hubCategories';
@@ -8,6 +8,7 @@ import { ArrowLeft, Star, Tag, Link as LinkIcon } from 'lucide-react';
 const HubResourceDetail = () => {
   const { id = '' } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [loading, setLoading] = useState(true);
   const [item, setItem] = useState<TeamUpdate | null>(null);
   const [isFav, setIsFav] = useState<boolean>(false);
@@ -44,6 +45,12 @@ const HubResourceDetail = () => {
     } catch {}
   };
 
+  const backTo = useMemo(() => {
+    const search = new URLSearchParams(location.search);
+    const cat = search.get('fromCategory');
+    return cat ? `/hub/${cat}` : '/team-updates';
+  }, [location.search]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -69,7 +76,7 @@ const HubResourceDetail = () => {
       <div className="rounded-lg p-6 text-white bg-primary-600">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
-            <button onClick={() => navigate(-1)} className="mr-3 text-primary-100 hover:text-white">
+            <button onClick={() => navigate(backTo)} className="mr-3 text-primary-100 hover:text-white">
               <ArrowLeft className="h-5 w-5" />
             </button>
             <h1 className="text-2xl font-bold flex items-center">
