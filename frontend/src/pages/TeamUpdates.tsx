@@ -353,6 +353,7 @@ const TeamUpdates = () => {
                   <option key={key} value={key}>{(def as any).label || formatCategoryLabel(key)}</option>
                 ))}
               </select>
+              <p className="text-xs text-gray-500 mt-1">Tip: For Start Here sub-sections, use Section values like "welcome_setup" or "core_playbooks".</p>
             </div>
 
             <div>

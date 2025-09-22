@@ -41,13 +41,19 @@ router.get('/', authenticate as RequestHandler, (async (req, res) => {
       values.push(category);
     }
     if (section) {
-      where.push(`LOWER(tu.section) = LOWER($${values.length + 1})`);
+      // Robust matching: ignore spaces/underscores and also allow fuzzy like
+      const paramIdx = values.length + 1;
+      where.push(`(
+        REPLACE(LOWER(tu.section), ' ', '') = REPLACE(LOWER($${paramIdx}), '_', '')
+        OR LOWER(tu.section) LIKE LOWER('%' || REPLACE($${paramIdx}, '_', ' ') || '%')
+        OR LOWER(tu.section) LIKE LOWER('%' || REPLACE($${paramIdx}, '_', '') || '%')
+      )`);
       values.push(section);
     }
     if (q && q.trim()) {
       const like = `%${q.trim()}%`;
-      where.push(`(tu.title ILIKE $${values.length + 1} OR tu.content ILIKE $${values.length + 2})`);
-      values.push(like, like);
+      where.push(`(tu.title ILIKE $${values.length + 1} OR tu.content ILIKE $${values.length + 2} OR tu.section ILIKE $${values.length + 3})`);
+      values.push(like, like, like);
     }
     if (where.length) {
       query += ' WHERE ' + where.join(' AND ');
