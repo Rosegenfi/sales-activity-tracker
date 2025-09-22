@@ -37,7 +37,7 @@ router.get('/', authenticate as RequestHandler, (async (req, res) => {
     
     const where: string[] = [];
     if (category) {
-      where.push(`tu.category = $${values.length + 1}`);
+      where.push(`LOWER(tu.category) = LOWER($${values.length + 1})`);
       values.push(category);
     }
     if (section) {

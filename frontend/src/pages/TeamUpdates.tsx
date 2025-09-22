@@ -287,7 +287,7 @@ const TeamUpdates = () => {
           {ALPHABETICAL_CATEGORY_KEYS.map((key) => {
             const def = (HUB_CATEGORY_DEFS as any)[key];
             const Icon = def.Icon;
-            const count = categoryCounts[key] ?? 0;
+            const count = categoryCounts[key?.toLowerCase?.() ? key.toLowerCase() : key] ?? 0;
             const isActive = false;
             return (
               <div key={key} className={`p-5 rounded-xl border border-gray-200 bg-white hover:shadow-sm transition cursor-pointer`} onClick={() => navigate(`/hub/${key}`)}>

@@ -27,7 +27,7 @@ const HubCategoryPage = () => {
     const load = async () => {
       try {
         const normalizedSection = section ? section.toLowerCase() : undefined;
-        const res = await teamUpdateApi.getAll(category, normalizedSection, q || undefined);
+        const res = await teamUpdateApi.getAll(category.toLowerCase(), normalizedSection, q || undefined);
         setUpdates(res.data);
       } catch (e) {
         // ignore for now
