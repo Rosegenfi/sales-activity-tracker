@@ -4,12 +4,13 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Tag, Plus, ChevronRight, Star, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
 import type { TeamUpdate } from '@/types';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import { HUB_CATEGORY_DEFS, formatCategoryLabel } from './hubCategories';
 
 const TeamUpdates = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   // No bottom list; we focus on favorites, recents, and journeys
   const [favorites, setFavorites] = useState<TeamUpdate[]>([]);
   const [recents, setRecents] = useState<TeamUpdate[]>([]);
@@ -279,7 +280,7 @@ const TeamUpdates = () => {
             const count = categoryCounts[key] ?? 0;
             const isActive = selectedCategory === key;
             return (
-              <div key={key} className={`p-5 rounded-xl border ${isActive ? 'border-primary-300 bg-primary-50' : 'border-gray-200 bg-white'} hover:shadow-sm transition cursor-pointer`} onClick={() => setSelectedCategory(key)}>
+              <div key={key} className={`p-5 rounded-xl border ${isActive ? 'border-primary-300 bg-primary-50' : 'border-gray-200 bg-white'} hover:shadow-sm transition cursor-pointer`} onClick={() => navigate(`/hub/${key}`)}>
                 <div className="flex items-start justify-between">
                   <div className="flex items-center">
                     <div className={`h-12 w-12 rounded-lg flex items-center justify-center mr-4 ${isActive ? 'bg-primary-100 text-primary-700' : 'bg-gray-100 text-gray-700'}`}>
@@ -296,13 +297,13 @@ const TeamUpdates = () => {
                 {/* Guided steps */}
                 <div className="mt-4 space-y-2">
                   {journeyStepsForCategory(key).map((step) => (
-                    <a key={step.key} href={`#/hub/${encodeURIComponent(key)}?section=${encodeURIComponent(step.section || '')}`} className="flex items-center justify-between p-3 rounded-lg border border-gray-200 hover:border-primary-300 hover:bg-primary-50 group">
+                    <Link key={step.key} to={`/hub/${encodeURIComponent(key)}?section=${encodeURIComponent(step.section || '')}`} className="flex items-center justify-between p-3 rounded-lg border border-gray-200 hover:border-primary-300 hover:bg-primary-50 group">
                       <div>
                         <div className="text-sm font-medium text-gray-900">{step.title}</div>
                         {step.caption && <div className="text-xs text-gray-600">{step.caption}</div>}
                       </div>
                       <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-primary-600" />
-                    </a>
+                    </Link>
                   ))}
                 </div>
               </div>
