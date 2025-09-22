@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 import type { TeamUpdate } from '@/types';
 import { Link, useNavigate } from 'react-router-dom';
 
-import { HUB_CATEGORY_DEFS, formatCategoryLabel } from './hubCategories';
+import { HUB_CATEGORY_DEFS, formatCategoryLabel, ALPHABETICAL_CATEGORY_KEYS } from './hubCategories';
 
 const TeamUpdates = () => {
   const { user } = useAuth();
@@ -173,7 +173,7 @@ const TeamUpdates = () => {
     );
   }
 
-  const categoryKeys = Object.keys(HUB_CATEGORY_DEFS);
+  // const categoryKeys = Object.keys(HUB_CATEGORY_DEFS);
 
   // Guided steps per category (simple static mapping)
   function journeyStepsForCategory(categoryKey: string): Array<{ key: string; title: string; caption?: string; section?: string }> {
@@ -274,7 +274,7 @@ const TeamUpdates = () => {
           </button>
         </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {categoryKeys.map((key) => {
+          {ALPHABETICAL_CATEGORY_KEYS.map((key) => {
             const def = (HUB_CATEGORY_DEFS as any)[key];
             const Icon = def.Icon;
             const count = categoryCounts[key] ?? 0;

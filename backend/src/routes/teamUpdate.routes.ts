@@ -224,9 +224,16 @@ router.get('/categories', authenticate, async (req, res) => {
       ORDER BY category
     `);
 
-    const categories = result.rows.map(row => ({
-      name: row.category,
-      count: parseInt(row.count)
+    // Normalize to allowed categories set and include zeros for missing
+    const countsMap: Record<string, number> = {};
+    for (const row of result.rows as any[]) {
+      const key = row.category || '';
+      countsMap[key] = (parseInt(row.count) || 0);
+    }
+
+    const categories = ALLOWED_CATEGORIES.map((cat) => ({
+      name: cat,
+      count: countsMap[cat] || 0,
     }));
 
     res.json(categories);

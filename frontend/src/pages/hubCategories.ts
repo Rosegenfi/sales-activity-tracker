@@ -50,3 +50,9 @@ export function formatCategoryLabel(key: string): string {
     .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+export const ALPHABETICAL_CATEGORY_KEYS = Object.keys(HUB_CATEGORY_DEFS).sort((a, b) => {
+  const al = (HUB_CATEGORY_DEFS as any)[a]?.label || formatCategoryLabel(a);
+  const bl = (HUB_CATEGORY_DEFS as any)[b]?.label || formatCategoryLabel(b);
+  return al.localeCompare(bl);
+});
+
