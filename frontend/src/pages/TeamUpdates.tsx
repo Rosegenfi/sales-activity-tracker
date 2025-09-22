@@ -4,13 +4,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Tag, Plus, ChevronRight, Star, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
 import type { TeamUpdate } from '@/types';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 
 import { HUB_CATEGORY_DEFS, formatCategoryLabel, ALPHABETICAL_CATEGORY_KEYS } from './hubCategories';
 
 const TeamUpdates = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   // No bottom list; we focus on favorites, recents, and journeys
   const [favorites, setFavorites] = useState<TeamUpdate[]>([]);
   const [recents, setRecents] = useState<TeamUpdate[]>([]);
@@ -42,6 +43,15 @@ const TeamUpdates = () => {
     };
     run();
   }, []);
+
+  // Refresh counts and lists when returning to this page via navigation
+  useEffect(() => {
+    if (location.pathname === '/team-updates') {
+      fetchCategoryCounts();
+      fetchFavorites();
+      fetchRecents();
+    }
+  }, [location.pathname]);
 
   useEffect(() => {
     // when category changes, could refresh counts later
