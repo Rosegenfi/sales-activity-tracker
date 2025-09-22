@@ -237,6 +237,11 @@ const TeamUpdates = () => {
               New Resource
             </button>
           )}
+          {user?.role === 'admin' && (
+            <Link to="/admin/hub" className="ml-3 inline-flex items-center text-white underline">
+              Admin tools
+            </Link>
+          )}
         </div>
       </div>
 

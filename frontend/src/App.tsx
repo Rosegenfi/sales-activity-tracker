@@ -16,6 +16,7 @@ import HubResourceDetail from '@/pages/HubResourceDetail';
 import UserManagement from '@/pages/UserManagement';
 import ChangePassword from '@/pages/ChangePassword';
 import AdminActivity from '@/pages/AdminActivity';
+import HubAdmin from '@/pages/HubAdmin';
 
 function App() {
   return (
@@ -63,6 +64,7 @@ function App() {
             <Route path="change-password" element={<ChangePassword />} />
             <Route path="users" element={<ProtectedRoute requireAdmin><UserManagement /></ProtectedRoute>} />
             <Route path="admin/activity" element={<ProtectedRoute requireAdmin><AdminActivity /></ProtectedRoute>} />
+            <Route path="admin/hub" element={<ProtectedRoute requireAdmin><HubAdmin /></ProtectedRoute>} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>
