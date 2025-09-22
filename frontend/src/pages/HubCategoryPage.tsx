@@ -26,7 +26,8 @@ const HubCategoryPage = () => {
   useEffect(() => {
     const load = async () => {
       try {
-        const res = await teamUpdateApi.getAll(category, section || undefined, q || undefined);
+        const normalizedSection = section ? section.toLowerCase() : undefined;
+        const res = await teamUpdateApi.getAll(category, normalizedSection, q || undefined);
         setUpdates(res.data);
       } catch (e) {
         // ignore for now
@@ -55,7 +56,7 @@ const HubCategoryPage = () => {
       <div className="rounded-lg p-6 text-white bg-primary-600">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
-            <button onClick={() => navigate(-1)} className="mr-3 text-primary-100 hover:text-white">
+            <button onClick={() => navigate('/team-updates')} className="mr-3 text-primary-100 hover:text-white">
               <ArrowLeft className="h-5 w-5" />
             </button>
             <h1 className="text-2xl font-bold flex items-center">

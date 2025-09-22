@@ -218,10 +218,10 @@ router.get('/me/recents', authenticate as RequestHandler, (async (req: AuthReque
 router.get('/categories', authenticate, async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT category, COUNT(*) as count
+      SELECT LOWER(category) as category, COUNT(*) as count
       FROM team_updates
-      GROUP BY category
-      ORDER BY category
+      GROUP BY LOWER(category)
+      ORDER BY LOWER(category)
     `);
 
     // Normalize to allowed categories set and include zeros for missing

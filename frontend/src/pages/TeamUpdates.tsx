@@ -190,8 +190,8 @@ const TeamUpdates = () => {
     switch (categoryKey) {
       case 'start_here':
         return [
-          { key: 'welcome', title: 'Welcome and Setup', caption: 'Access, tools, and week-one checklist', section: 'Setup' },
-          { key: 'playbook', title: 'Core Playbooks', caption: 'What good looks like', section: 'Playbooks' },
+          { key: 'welcome', title: 'Welcome and Setup', caption: 'Access, tools, and week-one checklist', section: 'welcome_setup' },
+          { key: 'playbook', title: 'Core Playbooks', caption: 'What good looks like', section: 'core_playbooks' },
         ];
       case 'cold_calling':
         return [
@@ -288,9 +288,9 @@ const TeamUpdates = () => {
             const def = (HUB_CATEGORY_DEFS as any)[key];
             const Icon = def.Icon;
             const count = categoryCounts[key] ?? 0;
-            const isActive = selectedCategory === key;
+            const isActive = false;
             return (
-              <div key={key} className={`p-5 rounded-xl border ${isActive ? 'border-primary-300 bg-primary-50' : 'border-gray-200 bg-white'} hover:shadow-sm transition cursor-pointer`} onClick={() => navigate(`/hub/${key}`)}>
+              <div key={key} className={`p-5 rounded-xl border border-gray-200 bg-white hover:shadow-sm transition cursor-pointer`} onClick={() => navigate(`/hub/${key}`)}>
                 <div className="flex items-start justify-between">
                   <div className="flex items-center">
                     <div className={`h-12 w-12 rounded-lg flex items-center justify-center mr-4 ${isActive ? 'bg-primary-100 text-primary-700' : 'bg-gray-100 text-gray-700'}`}>
